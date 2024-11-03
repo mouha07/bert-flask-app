@@ -78,6 +78,12 @@ except Exception as e:
 
 model.eval()
 
+# Hello route
+@app.route('/')
+def hello():
+    return "Bonjour ! Bienvenue sur l'API de prédiction."
+
+
 # Prediction route
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -117,7 +123,7 @@ time.sleep(5)
 
 # Send a test request to the API
 try:
-    response = requests.post("http://127.0.0.1:5000/predict", json={"text": "Very bad"})
+    response = requests.post("http://127.0.0.1:5001/predict", json={"text": "Very Good"})
     print(response.json())
 except requests.exceptions.RequestException as e:
     print("Error during the request:", e)
