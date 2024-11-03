@@ -1,10 +1,11 @@
 import threading
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import torch
 from transformers import AutoModel, BertTokenizerFast
 import torch.nn as nn
 import time
+import threading
 
 
 import boto3
@@ -78,13 +79,12 @@ except Exception as e:
 
 model.eval()
 
-# Hello route
+# Route pour l'interface utilisateur
 @app.route('/')
-def hello():
-    return "Bonjour ! Bienvenue sur l'API de prédiction."
+def home():
+    return render_template('index.html')
 
-
-# Prediction route
+# Route de prédiction
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
@@ -110,30 +110,10 @@ def predict():
         'probabilities': probabilities.tolist()
     })
 
-# Run Flask app
+# Exécuter l'application Flask
 def run_app():
     app.run(host='0.0.0.0', port=5001)
 
-# Start Flask server in a separate thread
+# Démarrer le serveur Flask dans un thread séparé
 thread = threading.Thread(target=run_app)
 thread.start()
-
-# Wait for the server to start
-time.sleep(5)
-
-# Send a test request to the API
-try:
-    response = requests.post("http://127.0.0.1:5001/predict", json={"text": "Very Good"})
-    print(response.json())
-except requests.exceptions.RequestException as e:
-    print("Error during the request:", e)
-
-# Display raw response for diagnosis
-print("Status Code:", response.status_code)
-print("Response Text:", response.text)
-
-# Check if response is in JSON format
-try:
-    print(response.json())
-except requests.exceptions.JSONDecodeError:
-    print("The response is not in JSON format.")
