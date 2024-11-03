@@ -5,11 +5,9 @@ import torch
 from transformers import AutoModel, BertTokenizerFast
 import torch.nn as nn
 import time
-import threading
-
-
 import boto3
 import botocore
+
 
 # Configuration
 BUCKET_NAME = 'bert-model-poids'  # Remplacez par le nom exact de votre bucket
