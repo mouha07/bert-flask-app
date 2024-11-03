@@ -8,15 +8,26 @@ import time
 
 
 import boto3
+import botocore
 
-# Configuration de S3
-s3 = boto3.client('s3')
-bucket_name = 'bert-model-poids'
-poids_path_s3 = 's3://bert-model-poids/'
-poids_local = 'best_model_weights.pt'
+# Configuration
+BUCKET_NAME = 'bert-model-poids'  # Remplacez par le nom exact de votre bucket
+KEY = 'best_model_weights.pt'  # Chemin relatif de l'objet dans S3
+LOCAL_FILE_PATH = 'best_model_weights.pt'  # Chemin local où vous souhaitez enregistrer le fichier
 
-# Téléchargement du fichier de poids
-s3.download_file(bucket_name, poids_path_s3, poids_local)
+# Connexion au service S3
+s3 = boto3.resource('s3')
+
+# Téléchargement avec gestion des erreurs
+try:
+    s3.Bucket(BUCKET_NAME).download_file(KEY, LOCAL_FILE_PATH)
+    print(f"Téléchargement réussi dans {LOCAL_FILE_PATH}")
+except botocore.exceptions.ClientError as e:
+    if e.response['Error']['Code'] == "404":
+        print("L'objet n'existe pas dans le bucket.")
+    else:
+        raise
+
 
 
 # Initialize Flask application
@@ -56,7 +67,7 @@ class BERT_architecture(nn.Module):
 model = BERT_architecture(bert)
 # model.load_state_dict(torch.load('/kaggle/input/bert_weight/pytorch/bert_weight/1/best_model_weights.pt'))
 # Chargement des poids dans le modèle
-model.load_state_dict(torch.load(poids_local, map_location=torch.device('cpu')))
+model.load_state_dict(torch.load(LOCAL_FILE_PATH, map_location=torch.device('cpu')))
 
 model.eval()
 
