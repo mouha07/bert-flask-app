@@ -6,6 +6,19 @@ from transformers import AutoModel, BertTokenizerFast
 import torch.nn as nn
 import time
 
+
+import boto3
+
+# Configuration de S3
+s3 = boto3.client('s3')
+bucket_name = 'bert-model-poids'
+poids_path_s3 = 's3://bert-model-poids/'
+poids_local = 'best_model_weights.pt'
+
+# Téléchargement du fichier de poids
+s3.download_file(bucket_name, poids_path_s3, poids_local)
+
+
 # Initialize Flask application
 app = Flask(__name__)
 # Load BERT model and tokenizer for multilingual support
@@ -41,7 +54,10 @@ class BERT_architecture(nn.Module):
 
 # Initialize model and load state
 model = BERT_architecture(bert)
-model.load_state_dict(torch.load('/kaggle/input/bert_weight/pytorch/bert_weight/1/best_model_weights.pt'))
+# model.load_state_dict(torch.load('/kaggle/input/bert_weight/pytorch/bert_weight/1/best_model_weights.pt'))
+# Chargement des poids dans le modèle
+model.load_state_dict(torch.load(poids_local, map_location=torch.device('cpu')))
+
 model.eval()
 
 # Prediction route
