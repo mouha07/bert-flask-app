@@ -67,7 +67,14 @@ class BERT_architecture(nn.Module):
 model = BERT_architecture(bert)
 # model.load_state_dict(torch.load('/kaggle/input/bert_weight/pytorch/bert_weight/1/best_model_weights.pt'))
 # Chargement des poids dans le modèle
-model.load_state_dict(torch.load(LOCAL_FILE_PATH, map_location=torch.device('cpu')))
+# model.load_state_dict(torch.load(LOCAL_FILE_PATH, map_location=torch.device('cpu')))
+
+try:
+    # Chargement des poids avec weights_only=True pour plus de sécurité
+    model.load_state_dict(torch.load(LOCAL_FILE_PATH, map_location=torch.device('cpu'), weights_only=True))
+    print("Poids du modèle chargés avec succès.")
+except Exception as e:
+    print(f"Erreur lors du chargement des poids : {e}")
 
 model.eval()
 
