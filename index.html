@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction de Sentiment</title>
+    <script>
+        async function predict() {
+            const text = document.getElementById("text-input").value;
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            });
+            const result = await response.json();
+            document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
+        }
+    </script>
+</head>
+<body>
+    <h1>Analyse de Sentiment</h1>
+    <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
+    <button onclick="predict()">Prédire</button>
+    <p id="result"></p>
+</body>
+</html>
