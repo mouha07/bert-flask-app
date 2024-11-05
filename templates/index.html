@@ -23,6 +23,21 @@
     }
 
     /* Section boutons */
+     /* Conteneur principal */
+    .container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: stretch; /* Élargir les éléments pour occuper la largeur */
+        gap: 20px; /* Espace entre les sections */
+    }
+
+    /* Section boutons */
+    .toggle-section {
+        display: flex;
+        justify-content: center; /* Centrer les boutons horizontalement */
+    }
+
     .toggle-section button {
         padding: 12px 25px;
         font-size: 18px;
@@ -46,10 +61,17 @@
     }
 
     /* Section d'input */
+    .input-section {
+        display: flex;
+        align-items: center; /* Centrer verticalement les éléments */
+        justify-content: space-between; /* Espacement égal entre les éléments */
+        flex-grow: 1; /* Permet aux sections d'occuper tout l'espace disponible */
+    }
+
     .input-field {
-        width: 100%;
+        flex: 1; /* Occupe l'espace restant */
         padding: 12px;
-        margin: 10px 0;
+        margin: 0 10px; /* Marge entre le champ et le bouton */
         border: 2px solid #ccc;
         border-radius: 5px;
         font-size: 16px;
@@ -71,9 +93,7 @@
         border-radius: 5px;
         font-size: 16px;
         cursor: pointer;
-        width: 100%;
         transition: background-color 0.3s, transform 0.3s;
-        margin-top: 10px;
     }
 
     .action-button:hover {
@@ -112,25 +132,7 @@
             padding: 20px;
         }
         
-        /* Section de bascule pour Prédiction et Recherche */
-        .toggle-section {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .toggle-button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            margin: 0 10px;
-            transition: background-color 0.3s;
-        }
-        .toggle-button.active {
-            background-color: #333;
-        }
+        
         
         /* Section des commentaires */
         .comments-section {
@@ -604,23 +606,25 @@ function updateChart(distribution) {
 
 <h1>Tableau de Bord de Prédiction de Sentiments</h1>
 
-<div class="toggle-section">
-    <button id="toggle-predict" class="toggle-button active" onclick="showSection('predict')">Prédiction</button>
-    <button id="toggle-search" class="toggle-button" onclick="showSection('search')">Recherche</button>
-</div>
+<div class="container">
+    <div class="toggle-section">
+        <button id="toggle-predict" class="toggle-button active" onclick="showSection('predict')">Prédiction</button>
+        <button id="toggle-search" class="toggle-button" onclick="showSection('search')">Recherche</button>
+    </div>
 
-<!-- Section Prédiction -->
-<div id="predict-section">
-    <input type="text" id="text-input" placeholder="Entrez un texte pour prédiction">
-    <button onclick="predict()">Prédire</button>
-    <div id="predicted-class"></div>
-    <div class="error-message" id="error-message" style="display:none;"></div>
-</div>
+    <!-- Section Prédiction -->
+    <div id="predict-section" class="input-section">
+        <input type="text" id="text-input" class="input-field" placeholder="Entrez un texte pour prédiction">
+        <button onclick="predict()" class="action-button">Prédire</button>
+        <div id="predicted-class" class="result-message"></div>
+        <div class="error-message" id="error-message" style="display:none;"></div>
+    </div>
 
-<!-- Section Recherche -->
-<div id="search-section" style="display:none;">
-    <input type="text" id="search-term" placeholder="Recherchez des commentaires">
-    <button onclick="searchComments()">Rechercher</button>
+    <!-- Section Recherche -->
+    <div id="search-section" class="input-section" style="display:none;">
+        <input type="text" id="search-term" class="input-field" placeholder="Recherchez des commentaires">
+        <button onclick="searchComments()" class="action-button">Rechercher</button>
+    </div>
 </div>
 
 <!-- Section des commentaires et du graphique -->
