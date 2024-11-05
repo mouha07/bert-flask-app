@@ -361,7 +361,6 @@ function updateCommentsTable(comments) {
     });
 }
 
-// Fonction pour mettre à jour le graphique
 function updateChart(distribution) {
     const ctx = document.getElementById('classDistributionChart').getContext('2d');
     const chartData = {
@@ -375,24 +374,58 @@ function updateChart(distribution) {
         }]
     };
 
-    // Mettre à jour le graphique existant si défini, sinon en créer un nouveau
+    // Vérifier si un graphique existe déjà et le détruire
     if (window.chart) {
-        window.chart.data = chartData;
-        window.chart.update();
-    } else {
-        window.chart = new Chart(ctx, {
-            type: 'bar',
-            data: chartData,
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+        window.chart.destroy();
+    }
+
+    // Créer un nouveau graphique
+    window.chart = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
                 }
             }
-        });
-    }
+        }
+    });
 }
+
+
+// // Fonction pour mettre à jour le graphique
+// function updateChart(distribution) {
+//     const ctx = document.getElementById('classDistributionChart').getContext('2d');
+//     const chartData = {
+//         labels: ["Positif", "Négatif"],
+//         datasets: [{
+//             label: 'Nombre de Commentaires par Classe',
+//             data: [distribution.Positif, distribution.Négatif],
+//             backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+//             borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+//             borderWidth: 1
+//         }]
+//     };
+
+//     // Mettre à jour le graphique existant si défini, sinon en créer un nouveau
+//     if (window.chart) {
+//         window.chart.data = chartData;
+//         window.chart.update();
+//     } else {
+//         window.chart = new Chart(ctx, {
+//             type: 'bar',
+//             data: chartData,
+//             options: {
+//                 scales: {
+//                     y: {
+//                         beginAtZero: true
+//                     }
+//                 }
+//             }
+//         });
+//     }
+// }
 
 
 
@@ -403,7 +436,43 @@ function updateChart(distribution) {
     </script>
     
 </head>
-<body>
+    <body>
+    <div class="dashboard">
+        <div class="comments-section">
+            <h1>Commentaires</h1>
+            <div id="search-input">
+                <input type="text" id="search-term" placeholder="Rechercher un commentaire">
+                <button onclick="searchComments()">Rechercher</button>
+            </div>
+            <div id="text-input-container">
+                <input type="text" id="text-input" placeholder="Entrez un commentaire pour prédiction">
+                <button onclick="predict()">Prédire</button>
+                <div id="error-message" class="error-message" style="display:none;"></div>
+            </div>
+            <table id="comments" class="comments-table">
+                <thead>
+                    <tr>
+                        <th>Texte</th>
+                        <th>Polarité</th>
+                        <th>Date</th> <!-- Nouvelle colonne pour la date -->
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="chart-section">
+            <h2>Distribution des Classes</h2>
+            <canvas id="classDistributionChart"></canvas>
+        </div>
+    </div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <div id="result_view">Détails du commentaire...</div>
+        </div>
+    </div>
+</body>
+<!-- <body>
     <h1>Analyse de Sentiment</h1>
     <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
     <button onclick="predict()">Prédire</button>
@@ -455,5 +524,5 @@ function updateChart(distribution) {
 
 
 
-</body>
+</body> -->
 </html>
