@@ -7,10 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        /* Structure principale */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
         }
         .dashboard {
             display: flex;
@@ -18,33 +22,60 @@
             padding: 20px;
         }
         
+        /* Section de bascule pour Prédiction et Recherche */
+        .toggle-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .toggle-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        .toggle-button.active {
+            background-color: #333;
+        }
+        
+        /* Section des commentaires */
         .comments-section {
-            flex: 1; /* Prend tout l'espace disponible */
-            margin-right: 20px; /* Marge à droite pour l'espacement */
+            flex: 1;
+            margin-right: 20px;
         }
         
-        .chart-section {
-            flex: 1; /* Prend tout l'espace disponible */
-        }
-        
+        /* Table des commentaires */
         .comments-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        
         .comments-table th, .comments-table td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
-        
         .comments-table th {
             background-color: #f2f2f2;
         }
-        h1 {
-            color: #333;
+        
+        /* Autres éléments */
+        .loading {
+            font-style: italic;
+            color: #555;
         }
+        .result-section {
+            margin-top: 20px;
+        }
+        .chart-section {
+            flex: 1; /* Prend tout l'espace disponible */
+        }
+        
+
         #comments {
             margin-bottom: 20px;
         }
@@ -90,6 +121,7 @@
         .error-message {
             color: red;
         }
+        
 
         .modal {
             display: none; /* Cacher la modale par défaut */
@@ -392,7 +424,49 @@ function updateChart(distribution) {
         }
     });
 }
+// Afficher la section sélectionnée et basculer le bouton actif
+    function showSection(section) {
+        const predictSection = document.getElementById("predict-section");
+        const searchSection = document.getElementById("search-section");
+        const togglePredict = document.getElementById("toggle-predict");
+        const toggleSearch = document.getElementById("toggle-search");
 
+        if (section === "predict") {
+            predictSection.style.display = "block";
+            searchSection.style.display = "none";
+            togglePredict.classList.add("active");
+            toggleSearch.classList.remove("active");
+        } else {
+            predictSection.style.display = "none";
+            searchSection.style.display = "block";
+            toggleSearch.classList.add("active");
+            togglePredict.classList.remove("active");
+        }
+    }
+
+    async function loadComments() {
+        const response = await fetch('/comments');
+        const comments = await response.json();
+        const commentsTableBody = document.getElementById("comments").querySelector("tbody");
+        commentsTableBody.innerHTML = '';
+        comments.forEach(comment => {
+            const row = document.createElement("tr");
+
+            const textCell = document.createElement("td");
+            textCell.innerText = comment.text;
+
+            const polarityCell = document.createElement("td");
+            polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
+
+            const dateCell = document.createElement("td");  // Colonne de date ajoutée
+            dateCell.innerText = comment.date; // Remplacez par le bon attribut pour la date
+
+            row.appendChild(textCell);
+            row.appendChild(polarityCell);
+            row.appendChild(dateCell); // Ajout de la cellule de date
+            commentsTableBody.appendChild(row);
+        });
+    }
 
 // // Fonction pour mettre à jour le graphique
 // function updateChart(distribution) {
@@ -437,40 +511,49 @@ function updateChart(distribution) {
     
 </head>
     <body>
-    <div class="dashboard">
-        <div class="comments-section">
-            <h1>Commentaires</h1>
-            <div id="search-input">
-                <input type="text" id="search-term" placeholder="Rechercher un commentaire">
-                <button onclick="searchComments()">Rechercher</button>
-            </div>
-            <div id="text-input-container">
-                <input type="text" id="text-input" placeholder="Entrez un commentaire pour prédiction">
-                <button onclick="predict()">Prédire</button>
-                <div id="error-message" class="error-message" style="display:none;"></div>
-            </div>
-            <table id="comments" class="comments-table">
-                <thead>
-                    <tr>
-                        <th>Texte</th>
-                        <th>Polarité</th>
-                        <th>Date</th> <!-- Nouvelle colonne pour la date -->
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="chart-section">
-            <h2>Distribution des Classes</h2>
-            <canvas id="classDistributionChart"></canvas>
-        </div>
+
+<h1>Tableau de Bord de Prédiction de Sentiments</h1>
+
+<div class="toggle-section">
+    <button id="toggle-predict" class="toggle-button active" onclick="showSection('predict')">Prédiction</button>
+    <button id="toggle-search" class="toggle-button" onclick="showSection('search')">Recherche</button>
+</div>
+
+<!-- Section Prédiction -->
+<div id="predict-section">
+    <input type="text" id="text-input" placeholder="Entrez un texte pour prédiction">
+    <button onclick="predict()">Prédire</button>
+    <div id="predicted-class"></div>
+    <div class="error-message" id="error-message" style="display:none;"></div>
+</div>
+
+<!-- Section Recherche -->
+<div id="search-section" style="display:none;">
+    <input type="text" id="search-term" placeholder="Recherchez des commentaires">
+    <button onclick="searchComments()">Rechercher</button>
+</div>
+
+<!-- Section des commentaires et du graphique -->
+<div class="dashboard">
+    <div class="comments-section">
+        <table class="comments-table" id="comments">
+            <thead>
+                <tr>
+                    <th>Commentaire</th>
+                    <th>Polarité</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Les commentaires seront insérés ici dynamiquement -->
+            </tbody>
+        </table>
     </div>
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal()">&times;</span>
-            <div id="result_view">Détails du commentaire...</div>
-        </div>
+    <div class="chart-section">
+        <canvas id="classDistributionChart"></canvas>
     </div>
+</div>
+
 </body>
 <!-- <body>
     <h1>Analyse de Sentiment</h1>
