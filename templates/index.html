@@ -196,10 +196,14 @@
     async function loadClassDistribution() {
         const response = await fetch('/class_distribution');
         const distribution = await response.json();
-    
-        const labels = Object.keys(distribution);
-        const counts = Object.values(distribution);
-    
+        
+        const labels = Object.keys(distribution);  // Ex: ['Classe 0', 'Classe 1']
+        const counts = Object.values(distribution);  // Nombre de commentaires par classe
+        
+        // Définir les couleurs selon la classe
+        const backgroundColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)');
+        const borderColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)');
+        
         const ctx = document.getElementById('classDistributionChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'bar',
@@ -208,8 +212,8 @@
                 datasets: [{
                     label: 'Nombre de Commentaires par Classe',
                     data: counts,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
                     borderWidth: 1
                 }]
             },
@@ -218,10 +222,46 @@
                     y: {
                         beginAtZero: true
                     }
+                },
+                onClick: (e) => {
+                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                    if (activePoints.length > 0) {
+                        const index = activePoints[0].index;
+                        const selectedClass = labels[index];
+                        filterCommentsByClass(selectedClass);
+                    }
                 }
             }
         });
     }
+
+    async function filterCommentsByClass(selectedClass) {
+        // Charger tous les commentaires
+        const response = await fetch('/comments');
+        const comments = await response.json();
+    
+        const filteredComments = comments.filter(comment => comment.class.toString() === selectedClass);
+    
+        // Mise à jour du tableau des commentaires
+        const commentsTable = document.getElementById("comments").querySelector("tbody");
+        commentsTable.innerHTML = '';  // Vider le tableau actuel
+    
+        filteredComments.forEach(comment => {
+            const row = document.createElement("tr");
+            
+            const commentCell = document.createElement("td");
+            commentCell.textContent = comment.text;
+            row.appendChild(commentCell);
+    
+            const polarityCell = document.createElement("td");
+            polarityCell.textContent = comment.class === 1 ? 'Positif' : 'Négatif';
+            row.appendChild(polarityCell);
+    
+            commentsTable.appendChild(row);
+        });
+    }
+
+
     
     window.onload = function() {
         loadComments();
