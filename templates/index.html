@@ -4,13 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prédiction de Sentiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+        }
+        #comments {
+            margin-bottom: 20px;
+        }
+        .comment {
+            cursor: pointer;
+            border: 1px solid #ccc;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .comment:hover {
+            background-color: #e0f7fa;
+        }
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .loading {
+            font-style: italic;
+            color: #555;
+        }
+    </style>
     <script>
         async function predict(commentId) {
-            const response = await fetch(`/predict/${commentId}`, {
-                method: 'GET'
-            });
-            const result = await response.json();
-            document.getElementById("result").innerHTML = result.html; // Mise à jour du contenu avec le résultat
+            document.getElementById("result").innerHTML = "<div class='loading'>Chargement en cours...</div>";
+            try {
+                const response = await fetch(`/predict/${commentId}`, { method: 'GET' });
+                if (!response.ok) {
+                    throw new Error("Erreur lors de la récupération des résultats.");
+                }
+                const result = await response.json();
+                if (result.error) {
+                    document.getElementById("result").innerHTML = `<strong>${result.error}</strong>`;
+                } else {
+                    document.getElementById("result").innerHTML = result.html; // Mise à jour du contenu avec le résultat
+                }
+            } catch (error) {
+                document.getElementById("result").innerHTML = `<strong>Erreur : ${error.message}</strong>`;
+            }
         }
     </script>
 </head>
@@ -19,7 +64,7 @@
     <div id="comments">
         <!-- Les commentaires seront affichés ici -->
         {% for comment in comments %}
-            <div onclick="predict({{ comment.id }})" style="cursor: pointer; border: 1px solid #ccc; margin: 5px; padding: 5px;">
+            <div class="comment" onclick="predict({{ comment.id }})">
                 {{ comment.text }}
             </div>
         {% endfor %}
