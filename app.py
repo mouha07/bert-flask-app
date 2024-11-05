@@ -12,6 +12,8 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import spacy
 from spacy import displacy
 from spacy.tokens import Span
+import psycopg2  # ou un autre module de connexion à la base de données
+
 
 import atexit
 # Configuration
