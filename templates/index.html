@@ -61,6 +61,8 @@
 </head>
 <body>
     <h1>Analyse de Sentiment</h1>
+    <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
+    <button onclick="predict()">Prédire</button>
     <div id="comments">
         <!-- Les commentaires seront affichés ici -->
         {% for comment in comments %}
