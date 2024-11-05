@@ -49,9 +49,16 @@ def get_db_connection():
     'user': 'admin',
     'password': 'AmazoneRDS2025',  # Remplacez par votre mot de passe
     'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
+
+     try:
+        conn = mysql.connector.connect(**db_config)
+        if conn.is_connected():
+            print("Connexion réussie à la base de données")
+        return conn
+    except Error as e:
+        print(f"Erreur lors de la connexion à la base de données: {e}")
+        return None
     }
-    conn = mysql.connector.connect(**db_config )                                       
-    return conn
 
 # cursor = connection.cursor()
 
@@ -113,15 +120,22 @@ interesting_deps = {
 # Route pour l'interface utilisateur
 @app.route('/')
 def home():
-    
-    conn = get_db_connection()  # Obtenez la connexion à la base de données
-    cursor = conn.cursor()  # Créez un curseur à partir de cette connexion
-    cursor.execute("SELECT id, text FROM comments")  # Exécutez la requête
-    comments = cursor.fetchall()  # Récupérez tous les résultats
-    cursor.close()  # Fermez le curseur
-    conn.close()  # Fermez la connexion
+    conn = get_db_connection()
+    if conn is None:
+        return "Erreur lors de la connexion à la base de données.", 500
 
-    return render_template('index.html', comments=comments)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, text FROM comments")
+        comments = cursor.fetchall()
+        cursor.close()
+        return render_template('index.html', comments=comments)
+    except Error as e:
+        print(f"Erreur lors de la récupération des résultats: {e}")
+        return "Erreur lors de la récupération des résultats.", 500
+    finally:
+        conn.close()  # Assurez-vous de fermer la connexion dans tous les cas
+
 
 # Route de prédiction
 @app.route('/predict/<int:comment_id>', methods=['GET'])
