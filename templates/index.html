@@ -77,6 +77,20 @@
             font-style: italic;
             color: #555;
         }
+        .result-section {
+            margin-top: 20px;
+        }
+        
+        #predicted-class {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        
+        .error-message {
+            color: red;
+        }
+
     </style>
     <script>
         async function view(commentId) {
@@ -160,7 +174,25 @@
 
 // Appelez cette fonction après avoir chargé les commentaires
 async function predict() {
-    const text = document.getElementById("text-input").value;
+    const textInput = document.getElementById("text-input");
+    const text = textInput.value.trim();
+    const errorMessage = document.getElementById("error-message");
+    
+    // Réinitialiser le message d'erreur
+    errorMessage.style.display = 'none';
+    
+    // Vérifications avant d'envoyer la requête
+    if (text === '') {
+        errorMessage.innerText = "Veuillez entrer un texte.";
+        errorMessage.style.display = 'block';
+        return;
+    } else if (text.length < 5) {
+        errorMessage.innerText = "Le texte doit contenir au moins 5 caractères.";
+        errorMessage.style.display = 'block';
+        return;
+    }
+
+    // Envoi de la requête de prédiction
     const response = await fetch('/predict', {
         method: 'POST',
         headers: {
@@ -168,13 +200,21 @@ async function predict() {
         },
         body: JSON.stringify({ text: text })
     });
+
+    if (!response.ok) {
+        errorMessage.innerText = "Erreur lors de la prédiction. Veuillez réessayer.";
+        errorMessage.style.display = 'block';
+        return;
+    }
+
     const result = await response.json();
-    document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
+    document.getElementById("predicted-class").innerText = "Classe prédite: " + (result.predicted_class == 1 ? 'Positif' : 'Négatif');
 
     // Rechargez les commentaires et la distribution après une nouvelle prédiction
     await loadComments();
     await loadClassDistribution(); // Ajoutez ceci pour charger la distribution des classes
 }
+
 // async function loadComments() {
 //     const response = await fetch('/comments');
 //     const comments = await response.json();
@@ -222,33 +262,38 @@ async function predict() {
     <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
     <button onclick="predict()">Prédire</button>
 
-    <div id="result"></div>
+    <div id="result" class="result-section">
+        <h2>Résultat de la Prédiction</h2>
+        <p id="predicted-class"></p>
+        <p id="error-message" class="error-message" style="display: none;"></p>
+    </div>
 
     <div class="dashboard">
-    <div class="comments-section">
-        <h2>Commentaires</h2>
-        <table id="comments" class="comments-table">
-            <thead>
-                <tr>
-                    <th>Commentaire</th>
-                    <th>Polarité</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for comment in comments %}
-                    <tr class="comment" onclick="view({{ comment.id }})">
-                        <td>{{ comment.text }}</td>
-                        <td>{{ 'Positif' if comment.class == 1 else 'Négatif' }}</td>
+        <div class="comments-section">
+            <h2>Commentaires</h2>
+            <table id="comments" class="comments-table">
+                <thead>
+                    <tr>
+                        <th>Commentaire</th>
+                        <th>Polarité</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for comment in comments %}
+                        <tr class="comment" onclick="view({{ comment.id }})">
+                            <td>{{ comment.text }}</td>
+                            <td>{{ 'Positif' if comment.class == 1 else 'Négatif' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="chart-section">
+            <h2>Distribution des Classes</h2>
+            <canvas id="classDistributionChart" width="400" height="200"></canvas>
+        </div>
     </div>
-    <div class="chart-section">
-        <h2>Distribution des Classes</h2>
-        <canvas id="classDistributionChart" width="400" height="200"></canvas>
-    </div>
-</div>
+
 <!--     <div id="comments"> -->
         <!-- Les commentaires seront affichés ici -->
 <!--         {% for comment in comments %} -->
