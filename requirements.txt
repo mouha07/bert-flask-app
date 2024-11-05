@@ -6,4 +6,3 @@ requests
 mysql-connector-python
 spacy 
 vaderSentiment
-psycopg2
