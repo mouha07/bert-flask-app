@@ -42,6 +42,10 @@ db_config = {
     'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
 }
 
+def get_db_connection():
+    conn = psycopg2.connect(host='businessintelligence.cdg84mokcel1.us-east-2.rds.amazonaws.com', database='business_intelligence_db', user='admin', password='AmazoneRDS2025')
+    return conn
+
 connection = mysql.connector.connect(**db_config)
 cursor = connection.cursor()
 
