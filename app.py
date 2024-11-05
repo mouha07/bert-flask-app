@@ -45,11 +45,11 @@ db_config = {
 
 def get_db_connection():
     db_config = {
-    'host': 'businessintelligence.cdg84mokcel1.us-east-2.rds.amazonaws.com',
-    'user': 'admin',
-    'password': 'AmazoneRDS2025',  # Remplacez par votre mot de passe
-    'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
-
+        'host': 'businessintelligence.cdg84mokcel1.us-east-2.rds.amazonaws.com',
+        'user': 'admin',
+        'password': 'AmazoneRDS2025',  # Remplacez par votre mot de passe
+        'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
+     }
      try:
         conn = mysql.connector.connect(**db_config)
         if conn.is_connected():
@@ -58,8 +58,7 @@ def get_db_connection():
     except Error as e:
         print(f"Erreur lors de la connexion à la base de données: {e}")
         return None
-    }
-
+   
 # cursor = connection.cursor()
 
 
