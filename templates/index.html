@@ -48,7 +48,7 @@
     </style>
     <script>
         async function view(commentId) {
-            document.getElementById("result").innerHTML = "<div class='loading'>Chargement en cours...</div>";
+            document.getElementById("result_view").innerHTML = "<div class='loading'>Chargement en cours...</div>";
             try {
                 const response = await fetch(`/view/${commentId}`, { method: 'GET' });
                 if (!response.ok) {
@@ -79,20 +79,7 @@
             // Rechargez les commentaires après une nouvelle prédiction
             // loadComments();
         }
-        // async function loadComments() {
-        //     const response = await fetch('/comments');
-        //     const comments = await response.json();
-        //     const commentsList = document.getElementById("comments-list");
-        //     commentsList.innerHTML = ''; // Vider la liste avant d'ajouter
-        //     comments.forEach(comment => {
-        //         const commentItem = document.createElement("li");
-        //         commentItem.innerText = comment.text + " (Classe: " + comment.class + ")";
-        //         commentItem.onclick = () => alert("Détails du commentaire: " + comment.text);
-        //         commentsList.appendChild(commentItem);
-        //     });
-        // }
-        // // Charger les commentaires au chargement de la page
-        // window.onload = loadComments;
+      
 
 
 
