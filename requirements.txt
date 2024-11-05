@@ -3,3 +3,4 @@ torch
 transformers
 boto3
 requests
+mysql-connector-python
