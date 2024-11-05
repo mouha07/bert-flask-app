@@ -47,14 +47,14 @@
                 if (!response.ok) {
                     throw new Error("Erreur lors de la récupération des résultats.");
                 }
-                const result = await response.json();
-                if (result.error) {
-                    document.getElementById("result").innerHTML = `<strong>${result.error}</strong>`;
+                const result_view = await response.json();
+                if (result_view.error) {
+                    document.getElementById("result_view").innerHTML = `<strong>${result_view.error}</strong>`;
                 } else {
-                    document.getElementById("result").innerHTML = result.html; // Mise à jour du contenu avec le résultat
+                    document.getElementById("result_view").innerHTML = result_view.html; // Mise à jour du contenu avec le résultat
                 }
             } catch (error) {
-                document.getElementById("result").innerHTML = `<strong>Erreur : ${error.message}</strong>`;
+                document.getElementById("result_view").innerHTML = `<strong>Erreur : ${error.message}</strong>`;
             }
         }
 
@@ -117,6 +117,6 @@
             </div>
         {% endfor %}
     </div>
-    <div id="result"></div>
+    <div id="result_view"></div>
 </body>
 </html>
