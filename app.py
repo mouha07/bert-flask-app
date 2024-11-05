@@ -53,7 +53,7 @@ def get_db_connection():
     conn = mysql.connector.connect(**db_config )                                       
     return conn
 
-cursor = connection.cursor()
+# cursor = connection.cursor()
 
 
 # Initialize Flask application
@@ -113,12 +113,13 @@ interesting_deps = {
 # Route pour l'interface utilisateur
 @app.route('/')
 def home():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, text FROM comments")
-    comments = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    
+    conn = get_db_connection()  # Obtenez la connexion à la base de données
+    cursor = conn.cursor()  # Créez un curseur à partir de cette connexion
+    cursor.execute("SELECT id, text FROM comments")  # Exécutez la requête
+    comments = cursor.fetchall()  # Récupérez tous les résultats
+    cursor.close()  # Fermez le curseur
+    conn.close()  # Fermez la connexion
 
     return render_template('index.html', comments=comments)
 
