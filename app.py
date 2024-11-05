@@ -8,6 +8,7 @@ import time
 import boto3
 import botocore
 import mysql.connector
+from mysql.connector import connect, Error  # Assurez-vous d'importer correctement Error
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import spacy
 from spacy import displacy
@@ -130,8 +131,12 @@ def home():
         cursor = conn.cursor()
         cursor.execute("SELECT id, text FROM comments")
         comments = cursor.fetchall()
-        cursor.close()
-        return render_template('index.html', comments=comments)
+        # cursor.close()
+        # return render_template('index.html', comments=comments)
+        # Vérifiez que vous passez bien une liste de dictionnaires
+        comments_list = [{"id": comment[0], "text": comment[1]} for comment in comments]
+        
+        return render_template('index.html', comments=comments_list)
     except Error as e:
         print(f"Erreur lors de la récupération des résultats: {e}")
         return "Erreur lors de la récupération des résultats.", 500
