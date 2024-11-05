@@ -137,6 +137,40 @@ def home():
         conn.close()  # Assurez-vous de fermer la connexion dans tous les cas
 
 
+
+# Route de prédiction
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.json
+    if 'text' not in data:
+        return jsonify({'error': 'No text provided'}), 400
+    text = data['text']
+    
+    # Tokenize and encode text
+    inputs = tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=20)
+    
+    # Get model predictions
+    with torch.no_grad():
+        outputs = model(inputs['input_ids'], mask=inputs['attention_mask'])
+    
+    # Convert logits to probabilities
+    probabilities = torch.exp(outputs)
+    predicted_class = torch.argmax(probabilities, dim=1).item()
+    
+    # Enregistrer le commentaire et la classe dans la base de données
+    insert_query = "INSERT INTO comments (text, class) VALUES (%s, %s)"
+    cursor.execute(insert_query, (text, predicted_class))
+    connection.commit()  # Enregistrez les modifications
+    
+    return jsonify({
+        'text': text,
+        'predicted_class': predicted_class,
+        'probabilities': probabilities.tolist()
+    })
+
+
+
+
 # Route de prédiction
 @app.route('/predict/<int:comment_id>', methods=['GET'])
 def predict(comment_id):
