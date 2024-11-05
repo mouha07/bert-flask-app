@@ -127,6 +127,20 @@ def predict():
     })
 
 
+@app.route('/comments', methods=['GET'])
+def get_comments():
+    cursor.execute("SELECT id, text, class, date FROM comments")
+    comments = cursor.fetchall()
+
+    # Transforme les résultats en une liste de dictionnaires
+    comments_list = [
+        {"id": row[0], "text": row[1], "class": row[2], "date": row[3]} for row in comments
+    ]
+
+    return jsonify(comments_list)
+
+
+
 @atexit.register
 def close_db_connection():
     if cursor:
