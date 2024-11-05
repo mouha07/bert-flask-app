@@ -135,9 +135,7 @@ def home():
         cursor = conn.cursor()
         cursor.execute("SELECT id, text FROM comments")
         comments = cursor.fetchall()
-        # cursor.close()
-        # return render_template('index.html', comments=comments)
-        # Vérifiez que vous passez bien une liste de dictionnaires
+       
         comments_list = [{"id": comment[0], "text": comment[1]} for comment in comments]
         
         return render_template('index.html', comments=comments_list)
