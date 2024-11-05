@@ -40,10 +40,10 @@
         }
     </style>
     <script>
-        async function predict(commentId) {
+        async function view(commentId) {
             document.getElementById("result").innerHTML = "<div class='loading'>Chargement en cours...</div>";
             try {
-                const response = await fetch(`/predict/${commentId}`, { method: 'GET' });
+                const response = await fetch(`/view/${commentId}`, { method: 'GET' });
                 if (!response.ok) {
                     throw new Error("Erreur lors de la récupération des résultats.");
                 }
@@ -66,7 +66,7 @@
     <div id="comments">
         <!-- Les commentaires seront affichés ici -->
         {% for comment in comments %}
-            <div class="comment" onclick="predict({{ comment.id }})">
+            <div class="comment" onclick="view({{ comment.id }})">
                 {{ comment.text }}
             </div>
         {% endfor %}
