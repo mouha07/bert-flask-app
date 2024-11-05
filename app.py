@@ -282,7 +282,9 @@ def get_comments():
 
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT id, text, class, date FROM comments")
+        # cursor.execute("SELECT id, text, class, date FROM comments")
+        # Récupérer les commentaires dans l'ordre du plus récent au plus ancien
+        cursor.execute("SELECT id, text, class, date FROM comments ORDER BY date DESC")
         comments = cursor.fetchall()
 
         # Transforme les résultats en une liste de dictionnaires
