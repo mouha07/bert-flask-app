@@ -103,7 +103,14 @@ interesting_deps = {
 # Route pour l'interface utilisateur
 @app.route('/')
 def home():
-    return render_template('index.html')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, text FROM comments")
+    comments = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return render_template('index.html', comments=comments)
 
 # Route de prédiction
 @app.route('/predict/<int:comment_id>', methods=['GET'])
