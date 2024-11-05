@@ -8,6 +8,10 @@ import time
 import boto3
 import botocore
 import mysql.connector
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import spacy
+from spacy import displacy
+from spacy.tokens import Span
 
 import atexit
 # Configuration
@@ -89,6 +93,12 @@ except Exception as e:
     print(f"Erreur lors du chargement des poids : {e}")
 
 model.eval()
+# Liste des dépendances intéressantes pour l'analyse syntaxique
+interesting_deps = {
+    "nsubj": "sujet nominal",
+    "dobj": "objet direct",
+    "amod": "modificateur nominal",
+}
 
 # Route pour l'interface utilisateur
 @app.route('/')
@@ -99,7 +109,7 @@ def home():
 @app.route('/predict/<int:comment_id>', methods=['GET'])
 def predict(comment_id):
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT text FROM comments WHERE id = %s", (comment_id,))
     comment = cursor.fetchone()
     cursor.close()
@@ -131,7 +141,7 @@ def predict(comment_id):
         colors = {"POSITIVE": "linear-gradient(90deg, #a3e635, #3cb371)", 
                   "NEGATIVE": "linear-gradient(90deg, #ff6347, #dc143c)"}
         options = {"ents": ["POSITIVE", "NEGATIVE"], "colors": colors}
-        
+
         # Ajouter les relations syntaxiques intéressantes
         for token in doc:
             if token.text in positive_terms or token.text in negative_terms:
@@ -151,20 +161,25 @@ def predict(comment_id):
 
     return jsonify({"error": "Comment not found"}), 404
 
-
-
+# Route pour obtenir les commentaires
 @app.route('/comments', methods=['GET'])
 def get_comments():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, text, class, date FROM comments")
     comments = cursor.fetchall()
+    cursor.close()
+    conn.close()
 
     # Transforme les résultats en une liste de dictionnaires
     comments_list = [
-        {"id": row[0], "text": row[1], "class": row[2], "date": row[3]} for row in comments
+        {"id": row['id'], "text": row['text'], "class": row['class'], "date": row['date']} for row in comments
     ]
 
     return jsonify(comments_list)
 
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 @atexit.register
