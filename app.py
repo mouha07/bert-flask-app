@@ -321,6 +321,45 @@ def class_distribution():
 
 
 
+@app.route('/search_comments')
+def search_comments_route():
+    return search_comments()
+
+def search_comments():
+    term = request.args.get("term", "").lower()
+    
+    if not term:
+        return jsonify({"error": "Aucun terme de recherche fourni."}), 400
+    
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Erreur lors de la connexion à la base de données."}), 500
+
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Rechercher les commentaires contenant le terme spécifié
+        query = "SELECT id, text, class, date FROM comments WHERE LOWER(text) LIKE %s ORDER BY date DESC"
+        cursor.execute(query, (f"%{term}%",))
+        comments = cursor.fetchall()
+        
+        # Création de la liste de commentaires
+        comments_list = [
+            {"id": row['id'], "text": row['text'], "class": row['class'], "date": row['date']} for row in comments
+        ]
+        
+        # Calcul de la distribution pour les commentaires filtrés
+        distribution = {
+            "Positif": sum(1 for comment in comments_list if comment["class"] == 1),
+            "Négatif": sum(1 for comment in comments_list if comment["class"] == 0)
+        }
+
+        return jsonify({"comments": comments_list, "distribution": distribution})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
