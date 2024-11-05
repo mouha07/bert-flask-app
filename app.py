@@ -7,8 +7,9 @@ import torch.nn as nn
 import time
 import boto3
 import botocore
+import mysql.connector
 
-
+import atexit
 # Configuration
 BUCKET_NAME = 'bert-model-poids'  # Remplacez par le nom exact de votre bucket
 KEY = 'best_model_weights.pt'  # Chemin relatif de l'objet dans S3
@@ -27,6 +28,18 @@ except botocore.exceptions.ClientError as e:
     else:
         raise
 
+
+
+# Configuration de la connexion à la base de données
+db_config = {
+    'host': 'businessintelligence.cdg84mokcel1.us-east-2.rds.amazonaws.com',
+    'user': 'admin',
+    'password': 'AmazoneRDS2025',  # Remplacez par votre mot de passe
+    'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
+}
+
+connection = mysql.connector.connect(**db_config)
+cursor = connection.cursor()
 
 
 # Initialize Flask application
@@ -107,6 +120,13 @@ def predict():
         'predicted_class': predicted_class,
         'probabilities': probabilities.tolist()
     })
+
+@atexit.register
+def close_db_connection():
+    if cursor:
+        cursor.close()
+    if connection:
+        connection.close()
 
 # Exécuter l'application Flask
 def run_app():
