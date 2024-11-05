@@ -118,10 +118,24 @@ except Exception as e:
 
 model.eval()
 # Liste des dépendances intéressantes pour l'analyse syntaxique
+# interesting_deps = {
+#     "nsubj": "sujet nominal",
+#     "dobj": "objet direct",
+#     "amod": "modificateur nominal",
+# }
+# Types de dépendances intéressants
 interesting_deps = {
-    "nsubj": "sujet nominal",
+    "nsubj": "sujet",
     "dobj": "objet direct",
-    "amod": "modificateur nominal",
+    "cop": "verbe copulatif",
+    "advmod": "adverbe modal",
+    "amod": "modificateur adjectival",
+    "nmod": "complément nominal",
+    "conj": "conjonction",
+    "obj": "objet",
+    "cc": "conjonction de coordination",
+    "nsubj:pass": "sujet passif",
+    "obl:mod": "complément de modification"
 }
 
 # Route pour l'interface utilisateur
