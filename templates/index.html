@@ -58,54 +58,46 @@
             }
         }
 
-
-        document.getElementById('predict-button').onclick = function() {
-            predict();
-        };
-
-        function predict() {
-            const textInput = document.getElementById('text-input').value;
-
-            // Vérifiez que le champ n'est pas vide
-            if (!textInput) {
-                alert("Veuillez entrer un texte à analyser.");
-                return;
-            }
-
-            fetch('/predict', {
+        async function predict() {
+            const text = document.getElementById("text-input").value;
+            const response = await fetch('/predict', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ text: textInput })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Traitez la réponse et affichez les résultats
-                if (data.error) {
-                    document.getElementById('result').innerText = data.error;
-                } else {
-                    const resultHtml = `
-                        <p>Texte : ${data.text}</p>
-                        <p>Classe Prédite : ${data.predicted_class}</p>
-                        <p>Probabilités : ${data.probabilities}</p>
-                    `;
-                    document.getElementById('result').innerHTML = resultHtml;
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                document.getElementById('result').innerText = "Erreur lors de la prédiction.";
+                body: JSON.stringify({ text: text })
             });
+            const result = await response.json();
+            document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
+            // Rechargez les commentaires après une nouvelle prédiction
+            // loadComments();
         }
+        // async function loadComments() {
+        //     const response = await fetch('/comments');
+        //     const comments = await response.json();
+        //     const commentsList = document.getElementById("comments-list");
+        //     commentsList.innerHTML = ''; // Vider la liste avant d'ajouter
+        //     comments.forEach(comment => {
+        //         const commentItem = document.createElement("li");
+        //         commentItem.innerText = comment.text + " (Classe: " + comment.class + ")";
+        //         commentItem.onclick = () => alert("Détails du commentaire: " + comment.text);
+        //         commentsList.appendChild(commentItem);
+        //     });
+        // }
+        // // Charger les commentaires au chargement de la page
+        // window.onload = loadComments;
 
+
+
+
+       
 
     </script>
 </head>
 <body>
     <h1>Analyse de Sentiment</h1>
     <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
-    <button id="predict-button">Prédire</button>
+    <button onclick="predict()">Prédire</button>
 
     <div id="result"></div>
     
