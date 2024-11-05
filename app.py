@@ -12,7 +12,6 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import spacy
 from spacy import displacy
 from spacy.tokens import Span
-import psycopg2  # ou un autre module de connexion à la base de données
 
 
 import atexit
@@ -45,11 +44,16 @@ db_config = {
 }
 
 def get_db_connection():
-    conn = psycopg2.connect(host='businessintelligence.cdg84mokcel1.us-east-2.rds.amazonaws.com', database='business_intelligence_db', user='admin', password='AmazoneRDS2025')
+    db_config = {
+    'host': 'businessintelligence.cdg84mokcel1.us-east-2.rds.amazonaws.com',
+    'user': 'admin',
+    'password': 'AmazoneRDS2025',  # Remplacez par votre mot de passe
+    'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
+    }
+    conne = mysql.connector.connect(**db_config )                                       
     return conn
 
-connection = mysql.connector.connect(**db_config)
-cursor = connection.cursor()
+# cursor = connection.cursor()
 
 
 # Initialize Flask application
