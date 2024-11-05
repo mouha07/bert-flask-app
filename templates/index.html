@@ -91,10 +91,49 @@
             color: red;
         }
 
+        .modal {
+            display: none; /* Cacher la modale par défaut */
+            position: fixed; /* Rester en place */
+            z-index: 1000; /* Assurer que la modale est au-dessus du contenu */
+            left: 0;
+            top: 0;
+            width: 100%; /* Pleine largeur */
+            height: 100%; /* Pleine hauteur */
+            overflow: auto; /* Permettre le défilement si nécessaire */
+            background-color: rgba(0, 0, 0, 0.5); /* Couleur de fond semi-transparente */
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% du haut et centré */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Largeur de la modale */
+            border-radius: 8px; /* Coins arrondis */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+
     </style>
     <script>
         async function view(commentId) {
             document.getElementById("result_view").innerHTML = "<div class='loading'>Chargement en cours...</div>";
+            const modal = document.getElementById("modal");
+            
             try {
                 const response = await fetch(`/view/${commentId}`, { method: 'GET' });
                 if (!response.ok) {
@@ -106,10 +145,28 @@
                 } else {
                     document.getElementById("result_view").innerHTML = result_view.html; // Mise à jour du contenu avec le résultat
                 }
+        
+                // Afficher la modale
+                modal.style.display = "block";
             } catch (error) {
                 document.getElementById("result_view").innerHTML = `<strong>Erreur : ${error.message}</strong>`;
+                modal.style.display = "block"; // Afficher la modale même en cas d'erreur
             }
         }
+        
+        // Fonction pour fermer la modale
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+        
+        // Ferme la modale si l'utilisateur clique en dehors de celle-ci
+        window.onclick = function(event) {
+            const modal = document.getElementById("modal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
 
 
         // ************
@@ -293,17 +350,17 @@ async function predict() {
             <canvas id="classDistributionChart" width="400" height="200"></canvas>
         </div>
     </div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2>Détails du Commentaire</h2>
+            <div id="result_view">
+                <div class='loading'>Chargement en cours...</div>
+            </div>
+        </div>
+    </div>
 
-<!--     <div id="comments"> -->
-        <!-- Les commentaires seront affichés ici -->
-<!--         {% for comment in comments %} -->
-<!--             <div class="comment" onclick="view({{ comment.id }})"> -->
-<!--                 {{ comment.text }} -->
-<!--             </div> -->
-<!--         {% endfor %} -->
-<!--     </div> -->
-<!--     <div id="result_view"></div> -->
-<!--     <canvas id="classDistributionChart" width="400" height="200"></canvas> -->
+
 
 </body>
 </html>
