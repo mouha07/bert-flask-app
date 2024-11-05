@@ -12,6 +12,36 @@
             margin: 20px;
             background-color: #f9f9f9;
         }
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        
+        .comments-section {
+            flex: 1; /* Prend tout l'espace disponible */
+            margin-right: 20px; /* Marge à droite pour l'espacement */
+        }
+        
+        .chart-section {
+            flex: 1; /* Prend tout l'espace disponible */
+        }
+        
+        .comments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .comments-table th, .comments-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .comments-table th {
+            background-color: #f2f2f2;
+        }
         h1 {
             color: #333;
         }
@@ -165,17 +195,42 @@ async function loadComments() {
     <button onclick="predict()">Prédire</button>
 
     <div id="result"></div>
-    
-    <div id="comments">
-        <!-- Les commentaires seront affichés ici -->
-        {% for comment in comments %}
-            <div class="comment" onclick="view({{ comment.id }})">
-                {{ comment.text }}
-            </div>
-        {% endfor %}
+
+    <div class="dashboard">
+    <div class="comments-section">
+        <h2>Commentaires</h2>
+        <table id="comments" class="comments-table">
+            <thead>
+                <tr>
+                    <th>Commentaire</th>
+                    <th>Polarité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comment in comments %}
+                    <tr class="comment" onclick="view({{ comment.id }})">
+                        <td>{{ comment.text }}</td>
+                        <td>{{ 'Positif' if comment.class == 1 else 'Négatif' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div id="result_view"></div>
-    <canvas id="classDistributionChart" width="400" height="200"></canvas>
+    <div class="chart-section">
+        <h2>Distribution des Classes</h2>
+        <canvas id="classDistributionChart" width="400" height="200"></canvas>
+    </div>
+</div>
+<!--     <div id="comments"> -->
+        <!-- Les commentaires seront affichés ici -->
+<!--         {% for comment in comments %} -->
+<!--             <div class="comment" onclick="view({{ comment.id }})"> -->
+<!--                 {{ comment.text }} -->
+<!--             </div> -->
+<!--         {% endfor %} -->
+<!--     </div> -->
+<!--     <div id="result_view"></div> -->
+<!--     <canvas id="classDistributionChart" width="400" height="200"></canvas> -->
 
 </body>
 </html>
