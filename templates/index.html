@@ -100,35 +100,63 @@
 
         // ************
 
-        async function loadClassDistribution() {
-    const response = await fetch('/class_distribution');
-    const classCounts = await response.json();
-
-    const labels = Object.keys(classCounts);
-    const data = Object.values(classCounts);
-
-    const ctx = document.getElementById('classDistributionChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Distribution des Classes',
-                data: data,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+       async function loadComments() {
+        const response = await fetch('/comments');
+        const comments = await response.json();
+        const commentsTableBody = document.getElementById("comments").querySelector("tbody");
+        commentsTableBody.innerHTML = ''; // Vider la table avant d'ajouter
+        comments.forEach(comment => {
+            const commentRow = document.createElement("tr");
+            commentRow.classList.add("comment");
+            commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
+            
+            const textCell = document.createElement("td");
+            textCell.innerText = comment.text;
+            
+            const polarityCell = document.createElement("td");
+            polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
+    
+            commentRow.appendChild(textCell);
+            commentRow.appendChild(polarityCell);
+            commentsTableBody.appendChild(commentRow);
+        });
+    }
+    
+    async function loadClassDistribution() {
+        const response = await fetch('/class_distribution');
+        const distribution = await response.json();
+    
+        const labels = Object.keys(distribution);
+        const counts = Object.values(distribution);
+    
+        const ctx = document.getElementById('classDistributionChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Nombre de Commentaires par Classe',
+                    data: counts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
+    
+    window.onload = function() {
+        loadComments();
+        loadClassDistribution();
+    };
+
 
 // Appelez cette fonction après avoir chargé les commentaires
 async function predict() {
@@ -147,19 +175,19 @@ async function predict() {
     await loadComments();
     await loadClassDistribution(); // Ajoutez ceci pour charger la distribution des classes
 }
-async function loadComments() {
-    const response = await fetch('/comments');
-    const comments = await response.json();
-    const commentsList = document.getElementById("comments");
-    commentsList.innerHTML = ''; // Vider la liste avant d'ajouter
-    comments.forEach(comment => {
-        const commentItem = document.createElement("div");
-        commentItem.classList.add("comment");
-        commentItem.innerText = comment.text + " (Classe: " + comment.class + ")";
-        commentItem.onclick = () => view(comment.id); // Lien vers la vue du commentaire
-        commentsList.appendChild(commentItem);
-    });
-}
+// async function loadComments() {
+//     const response = await fetch('/comments');
+//     const comments = await response.json();
+//     const commentsList = document.getElementById("comments");
+//     commentsList.innerHTML = ''; // Vider la liste avant d'ajouter
+//     comments.forEach(comment => {
+//         const commentItem = document.createElement("div");
+//         commentItem.classList.add("comment");
+//         commentItem.innerText = comment.text + " (Classe: " + comment.class + ")";
+//         commentItem.onclick = () => view(comment.id); // Lien vers la vue du commentaire
+//         commentsList.appendChild(commentItem);
+//     });
+// }
 
 
         
