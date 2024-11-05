@@ -57,12 +57,58 @@
                 document.getElementById("result").innerHTML = `<strong>Erreur : ${error.message}</strong>`;
             }
         }
+
+
+        document.getElementById('predict-button').onclick = function() {
+            predict();
+        };
+
+        function predict() {
+            const textInput = document.getElementById('text-input').value;
+
+            // Vérifiez que le champ n'est pas vide
+            if (!textInput) {
+                alert("Veuillez entrer un texte à analyser.");
+                return;
+            }
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: textInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Traitez la réponse et affichez les résultats
+                if (data.error) {
+                    document.getElementById('result').innerText = data.error;
+                } else {
+                    const resultHtml = `
+                        <p>Texte : ${data.text}</p>
+                        <p>Classe Prédite : ${data.predicted_class}</p>
+                        <p>Probabilités : ${data.probabilities}</p>
+                    `;
+                    document.getElementById('result').innerHTML = resultHtml;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                document.getElementById('result').innerText = "Erreur lors de la prédiction.";
+            });
+        }
+
+
     </script>
 </head>
 <body>
     <h1>Analyse de Sentiment</h1>
     <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
-    <button onclick="predict()">Prédire</button>
+    <button id="predict-button">Prédire</button>
+
+    <div id="result"></div>
+    
     <div id="comments">
         <!-- Les commentaires seront affichés ici -->
         {% for comment in comments %}
