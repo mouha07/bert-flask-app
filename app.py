@@ -214,12 +214,12 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-@atexit.register
-def close_db_connection():
-    if cursor:
-        cursor.close()
-    if connection:
-        connection.close()
+# @atexit.register
+# def close_db_connection():
+#     if cursor:
+#         cursor.close()
+#     if connection:
+#         connection.close()
 
 # Exécuter l'application Flask
 def run_app():
