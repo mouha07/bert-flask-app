@@ -284,6 +284,26 @@ def get_comments():
         cursor.close()
         conn.close()
 
+@app.route('/class_distribution', methods=['GET'])
+def class_distribution():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Erreur lors de la connexion à la base de données."}), 500
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT class, COUNT(*) as count FROM comments GROUP BY class")
+        distribution = cursor.fetchall()
+        class_counts = {str(row[0]): row[1] for row in distribution}
+        return jsonify(class_counts)
+    except Error as e:
+        print(f"Erreur lors de la récupération de la distribution des classes: {e}")
+        return jsonify({"error": "Erreur lors de la récupération de la distribution des classes."}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
