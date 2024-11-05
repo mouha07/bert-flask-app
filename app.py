@@ -13,6 +13,8 @@ import spacy
 from spacy import displacy
 from spacy.tokens import Span
 
+
+analyzer = SentimentIntensityAnalyzer()
 nlp = spacy.load('en_core_web_sm')
 
 import atexit
