@@ -115,11 +115,17 @@ def predict():
     probabilities = torch.exp(outputs)
     predicted_class = torch.argmax(probabilities, dim=1).item()
     
+    # Enregistrer le commentaire et la classe dans la base de données
+    insert_query = "INSERT INTO comments (text, class) VALUES (%s, %s)"
+    cursor.execute(insert_query, (text, predicted_class))
+    connection.commit()  # Enregistrez les modifications
+    
     return jsonify({
         'text': text,
         'predicted_class': predicted_class,
         'probabilities': probabilities.tolist()
     })
+
 
 @atexit.register
 def close_db_connection():
