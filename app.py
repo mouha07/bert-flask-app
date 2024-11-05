@@ -50,7 +50,7 @@ def get_db_connection():
     'password': 'AmazoneRDS2025',  # Remplacez par votre mot de passe
     'database': 'business_intelligence_db'    # Remplacez par le nom de votre base de données
     }
-    conne = mysql.connector.connect(**db_config )                                       
+    conn = mysql.connector.connect(**db_config )                                       
     return conn
 
 # cursor = connection.cursor()
