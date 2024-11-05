@@ -18,6 +18,10 @@ from spacy.tokens import Span
 analyzer = SentimentIntensityAnalyzer()
 nlp = spacy.load('en_core_web_sm')
 
+# Définir l'extension 'sentiment' pour le token
+spacy.tokens.Token.set_extension("sentiment", default=None)
+
+
 import atexit
 # Configuration
 BUCKET_NAME = 'bert-model-poids'  # Remplacez par le nom exact de votre bucket
