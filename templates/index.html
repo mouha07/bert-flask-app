@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prédiction de Sentiment</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,20 +67,88 @@
             }
         }
 
-        async function predict() {
-            const text = document.getElementById("text-input").value;
-            const response = await fetch('/predict', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ text: text })
-            });
-            const result = await response.json();
-            document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
-            // Rechargez les commentaires après une nouvelle prédiction
-            // loadComments();
+
+        // ************
+
+        async function loadClassDistribution() {
+    const response = await fetch('/class_distribution');
+    const classCounts = await response.json();
+
+    const labels = Object.keys(classCounts);
+    const data = Object.values(classCounts);
+
+    const ctx = document.getElementById('classDistributionChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Distribution des Classes',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
+    });
+}
+
+// Appelez cette fonction après avoir chargé les commentaires
+async function predict() {
+    const text = document.getElementById("text-input").value;
+    const response = await fetch('/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text })
+    });
+    const result = await response.json();
+    document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
+
+    // Rechargez les commentaires et la distribution après une nouvelle prédiction
+    await loadComments();
+    await loadClassDistribution(); // Ajoutez ceci pour charger la distribution des classes
+}
+async function loadComments() {
+    const response = await fetch('/comments');
+    const comments = await response.json();
+    const commentsList = document.getElementById("comments");
+    commentsList.innerHTML = ''; // Vider la liste avant d'ajouter
+    comments.forEach(comment => {
+        const commentItem = document.createElement("div");
+        commentItem.classList.add("comment");
+        commentItem.innerText = comment.text + " (Classe: " + comment.class + ")";
+        commentItem.onclick = () => view(comment.id); // Lien vers la vue du commentaire
+        commentsList.appendChild(commentItem);
+    });
+}
+
+
+        
+        // ****************
+
+        // async function predict() {
+        //     const text = document.getElementById("text-input").value;
+        //     const response = await fetch('/predict', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({ text: text })
+        //     });
+        //     const result = await response.json();
+        //     document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
+        //     // Rechargez les commentaires après une nouvelle prédiction
+        //     // loadComments();
+        // }
       
 
 
@@ -87,6 +157,7 @@
        
 
     </script>
+    
 </head>
 <body>
     <h1>Analyse de Sentiment</h1>
@@ -104,5 +175,7 @@
         {% endfor %}
     </div>
     <div id="result_view"></div>
+    <canvas id="classDistributionChart" width="400" height="200"></canvas>
+
 </body>
 </html>
