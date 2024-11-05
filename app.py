@@ -167,17 +167,30 @@ def predict():
     # Convert logits to probabilities
     probabilities = torch.exp(outputs)
     predicted_class = torch.argmax(probabilities, dim=1).item()
-    
+
     # Enregistrer le commentaire et la classe dans la base de données
-    insert_query = "INSERT INTO comments (text, class) VALUES (%s, %s)"
-    cursor.execute(insert_query, (text, predicted_class))
-    connection.commit()  # Enregistrez les modifications
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Erreur lors de la connexion à la base de données.'}), 500
+
+    try:
+        cursor = conn.cursor()
+        insert_query = "INSERT INTO comments (text, class) VALUES (%s, %s)"
+        cursor.execute(insert_query, (text, predicted_class))
+        conn.commit()  # Enregistrez les modifications
+    except Error as e:
+        print(f"Erreur lors de l'insertion: {e}")
+        return jsonify({'error': 'Erreur lors de l\'insertion.'}), 500
+    finally:
+        cursor.close()
+        conn.close()
     
     return jsonify({
         'text': text,
         'predicted_class': predicted_class,
         'probabilities': probabilities.tolist()
     })
+
 
 
 
