@@ -16,7 +16,27 @@
             });
             const result = await response.json();
             document.getElementById("result").innerText = "Classe prédite: " + result.predicted_class;
+
+            // Rechargez les commentaires après une nouvelle prédiction
+            loadComments();
         }
+
+        async function loadComments() {
+            const response = await fetch('/comments');
+            const comments = await response.json();
+            const commentsList = document.getElementById("comments-list");
+            commentsList.innerHTML = ''; // Vider la liste avant d'ajouter
+
+            comments.forEach(comment => {
+                const commentItem = document.createElement("li");
+                commentItem.innerText = comment.text + " (Classe: " + comment.class + ")";
+                commentItem.onclick = () => alert("Détails du commentaire: " + comment.text);
+                commentsList.appendChild(commentItem);
+            });
+        }
+
+        // Charger les commentaires au chargement de la page
+        window.onload = loadComments;
     </script>
 </head>
 <body>
@@ -24,5 +44,8 @@
     <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
     <button onclick="predict()">Prédire</button>
     <p id="result"></p>
+
+    <h2>Commentaires enregistrés</h2>
+    <ul id="comments-list"></ul>
 </body>
 </html>
