@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prédiction de Sentiment</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,28 +16,23 @@
             justify-content: space-between;
             padding: 20px;
         }
-        
         .comments-section {
-            flex: 1; /* Prend tout l'espace disponible */
-            margin-right: 20px; /* Marge à droite pour l'espacement */
+            flex: 1;
+            margin-right: 20px;
         }
-        
         .chart-section {
-            flex: 1; /* Prend tout l'espace disponible */
+            flex: 1;
         }
-        
         .comments-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        
         .comments-table th, .comments-table td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
-        
         .comments-table th {
             background-color: #f2f2f2;
         }
@@ -60,14 +53,7 @@
         .comment:hover {
             background-color: #e0f7fa;
         }
-        #result {
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #fff;
-        }
-        #result_view {
+        #result, #result_view {
             margin-top: 20px;
             border: 1px solid #ccc;
             padding: 10px;
@@ -81,449 +67,253 @@
         .result-section {
             margin-top: 20px;
         }
-        
         #predicted-class {
             font-weight: bold;
             font-size: 1.2em;
             margin-top: 10px;
         }
-        
         .error-message {
             color: red;
         }
-
         .modal {
-            display: none; /* Cacher la modale par défaut */
-            position: fixed; /* Rester en place */
-            z-index: 1000; /* Assurer que la modale est au-dessus du contenu */
+            display: none;
+            position: fixed;
+            z-index: 1000;
             left: 0;
             top: 0;
-            width: 100%; /* Pleine largeur */
-            height: 100%; /* Pleine hauteur */
-            overflow: auto; /* Permettre le défilement si nécessaire */
-            background-color: rgba(0, 0, 0, 0.5); /* Couleur de fond semi-transparente */
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
         }
-        
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto; /* 15% du haut et centré */
+            margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%; /* Largeur de la modale */
-            border-radius: 8px; /* Coins arrondis */
+            width: 80%;
+            border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        
         .close-button {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
-        
         .close-button:hover,
         .close-button:focus {
             color: black;
             text-decoration: none;
             cursor: pointer;
         }
-
-
     </style>
-    <script>
-        async function view(commentId) {
-            document.getElementById("result_view").innerHTML = "<div class='loading'>Chargement en cours...</div>";
-            const modal = document.getElementById("modal");
-            
-            try {
-                const response = await fetch(`/view/${commentId}`, { method: 'GET' });
-                if (!response.ok) {
-                    throw new Error("Erreur lors de la récupération des résultats.");
-                }
-                const result_view = await response.json();
-                if (result_view.error) {
-                    document.getElementById("result_view").innerHTML = `<strong>${result_view.error}</strong>`;
-                } else {
-                    document.getElementById("result_view").innerHTML = result_view.html; // Mise à jour du contenu avec le résultat
-                }
-        
-                // Afficher la modale
-                modal.style.display = "block";
-            } catch (error) {
-                document.getElementById("result_view").innerHTML = `<strong>Erreur : ${error.message}</strong>`;
-                modal.style.display = "block"; // Afficher la modale même en cas d'erreur
-            }
-        }
-        
-        // Fonction pour fermer la modale
-        function closeModal() {
-            document.getElementById("modal").style.display = "none";
-        }
-        
-        // Ferme la modale si l'utilisateur clique en dehors de celle-ci
-        window.onclick = function(event) {
-            const modal = document.getElementById("modal");
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        };
-
-
-
-        // ************
-
-       async function loadComments() {
-        const response = await fetch('/comments');
-        const comments = await response.json();
-        const commentsTableBody = document.getElementById("comments").querySelector("tbody");
-        commentsTableBody.innerHTML = ''; // Vider la table avant d'ajouter
-        comments.forEach(comment => {
-            const commentRow = document.createElement("tr");
-            commentRow.classList.add("comment");
-            commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
-            
-            const textCell = document.createElement("td");
-            textCell.innerText = comment.text;
-            
-            const polarityCell = document.createElement("td");
-            polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
-    
-            commentRow.appendChild(textCell);
-            commentRow.appendChild(polarityCell);
-            commentsTableBody.appendChild(commentRow);
-        });
-    }
-    
-    async function loadClassDistribution() {
-        const response = await fetch('/class_distribution');
-        const distribution = await response.json();
-        
-        const labels = Object.keys(distribution);  // Ex: ['Classe 0', 'Classe 1']
-        const counts = Object.values(distribution);  // Nombre de commentaires par classe
-        
-        // Définir les couleurs selon la classe
-        const backgroundColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)');
-        const borderColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)');
-        
-        const ctx = document.getElementById('classDistributionChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Nombre de Commentaires par Classe',
-                    data: counts,
-                    backgroundColor: backgroundColors,
-                    borderColor: borderColors,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                onClick: (e) => {
-                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (activePoints.length > 0) {
-                        const index = activePoints[0].index;
-                        const selectedClass = labels[index];
-                        filterCommentsByClass(selectedClass);
-                    }
-                }
-            }
-        });
-    }
-
-    async function filterCommentsByClass(selectedClass) {
-        // Charger tous les commentaires
-        const response = await fetch('/comments');
-        const comments = await response.json();
-    
-        const filteredComments = comments.filter(comment => comment.class.toString() === selectedClass);
-    
-        // Mise à jour du tableau des commentaires
-        const commentsTable = document.getElementById("comments").querySelector("tbody");
-        commentsTable.innerHTML = '';  // Vider le tableau actuel
-    
-        filteredComments.forEach(comment => {
-            const row = document.createElement("tr");
-            
-            const commentCell = document.createElement("td");
-            commentCell.textContent = comment.text;
-            row.appendChild(commentCell);
-    
-            const polarityCell = document.createElement("td");
-            polarityCell.textContent = comment.class === 1 ? 'Positif' : 'Négatif';
-            row.appendChild(polarityCell);
-    
-            commentsTable.appendChild(row);
-        });
-    }
-
-
-    
-    window.onload = function() {
-        loadComments();
-        loadClassDistribution();
-    };
-
-
-// Appelez cette fonction après avoir chargé les commentaires
-async function predict() {
-    const textInput = document.getElementById("text-input");
-    const text = textInput.value.trim();
-    const errorMessage = document.getElementById("error-message");
-    
-    // Réinitialiser le message d'erreur
-    errorMessage.style.display = 'none';
-    
-    // Vérifications avant d'envoyer la requête
-    if (text === '') {
-        errorMessage.innerText = "Veuillez entrer un texte.";
-        errorMessage.style.display = 'block';
-        return;
-    } else if (text.length < 5) {
-        errorMessage.innerText = "Le texte doit contenir au moins 5 caractères.";
-        errorMessage.style.display = 'block';
-        return;
-    }
-
-    // Envoi de la requête de prédiction
-    const response = await fetch('/predict', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ text: text })
-    });
-
-    if (!response.ok) {
-        errorMessage.innerText = "Erreur lors de la prédiction. Veuillez réessayer.";
-        errorMessage.style.display = 'block';
-        return;
-    }
-
-    const result = await response.json();
-    document.getElementById("predicted-class").innerText = "Classe prédite: " + (result.predicted_class == 1 ? 'Positif' : 'Négatif');
-
-    // Rechargez les commentaires et la distribution après une nouvelle prédiction
-    await loadComments();
-    await loadClassDistribution(); // Ajoutez ceci pour charger la distribution des classes
-}
-
-async function searchComments() {
-    const term = document.getElementById("search-term").value.trim();
-
-    if (!term) {
-        alert("Veuillez entrer un terme de recherche.");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/search_comments?term=${encodeURIComponent(term)}`);
-        if (!response.ok) {
-            throw new Error("Erreur lors de la récupération des résultats de recherche.");
-        }
-        
-        const data = await response.json();
-        if (data.error) {
-            alert(data.error);
-        } else {
-            updateCommentsTable(data.comments);
-            updateChart(data.distribution);
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Erreur : " + error.message);
-    }
-}
-
-// Fonction pour mettre à jour le tableau des commentaires
-function updateCommentsTable(comments) {
-    const commentsTableBody = document.getElementById("comments").querySelector("tbody");
-    commentsTableBody.innerHTML = "";  // Vider le tableau actuel
-
-    comments.forEach(comment => {
-        const row = document.createElement("tr");
-        row.classList.add("comment");
-        row.onclick = () => view(comment.id);
-        
-        const textCell = document.createElement("td");
-        textCell.innerText = comment.text;
-        row.appendChild(textCell);
-
-        const polarityCell = document.createElement("td");
-        polarityCell.innerText = comment.class === 1 ? "Positif" : "Négatif";
-        row.appendChild(polarityCell);
-
-        commentsTableBody.appendChild(row);
-    });
-}
-
-function updateChart(distribution) {
-    const ctx = document.getElementById('classDistributionChart').getContext('2d');
-    const chartData = {
-        labels: ["Positif", "Négatif"],
-        datasets: [{
-            label: 'Nombre de Commentaires par Classe',
-            data: [distribution.Positif, distribution.Négatif],
-            backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-            borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-            borderWidth: 1
-        }]
-    };
-
-    // Vérifier si un graphique existe déjà et le détruire
-    if (window.chart) {
-        window.chart.destroy();
-    }
-
-    // Créer un nouveau graphique
-    window.chart = new Chart(ctx, {
-        type: 'bar',
-        data: chartData,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
-
-
-// // Fonction pour mettre à jour le graphique
-// function updateChart(distribution) {
-//     const ctx = document.getElementById('classDistributionChart').getContext('2d');
-//     const chartData = {
-//         labels: ["Positif", "Négatif"],
-//         datasets: [{
-//             label: 'Nombre de Commentaires par Classe',
-//             data: [distribution.Positif, distribution.Négatif],
-//             backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-//             borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-//             borderWidth: 1
-//         }]
-//     };
-
-//     // Mettre à jour le graphique existant si défini, sinon en créer un nouveau
-//     if (window.chart) {
-//         window.chart.data = chartData;
-//         window.chart.update();
-//     } else {
-//         window.chart = new Chart(ctx, {
-//             type: 'bar',
-//             data: chartData,
-//             options: {
-//                 scales: {
-//                     y: {
-//                         beginAtZero: true
-//                     }
-//                 }
-//             }
-//         });
-//     }
-// }
-
-
-
-
-
-       
-
-    </script>
-    
 </head>
-    <body>
+<body>
+    <h1>Prédiction de Sentiment</h1>
+
     <div class="dashboard">
         <div class="comments-section">
-            <h1>Commentaires</h1>
-            <div id="search-input">
-                <input type="text" id="search-term" placeholder="Rechercher un commentaire">
-                <button onclick="searchComments()">Rechercher</button>
+            <input type="text" id="search-term" placeholder="Rechercher des commentaires">
+            <button onclick="searchComments()">Rechercher</button>
+            <div id="comments">
+                <table class="comments-table">
+                    <thead>
+                        <tr>
+                            <th>Commentaire</th>
+                            <th>Polarité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Les commentaires seront chargés ici -->
+                    </tbody>
+                </table>
             </div>
-            <div id="text-input-container">
-                <input type="text" id="text-input" placeholder="Entrez un commentaire pour prédiction">
-                <button onclick="predict()">Prédire</button>
-                <div id="error-message" class="error-message" style="display:none;"></div>
-            </div>
-            <table id="comments" class="comments-table">
-                <thead>
-                    <tr>
-                        <th>Texte</th>
-                        <th>Polarité</th>
-                        <th>Date</th> <!-- Nouvelle colonne pour la date -->
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
         </div>
+
         <div class="chart-section">
-            <h2>Distribution des Classes</h2>
             <canvas id="classDistributionChart"></canvas>
         </div>
     </div>
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal()">&times;</span>
-            <div id="result_view">Détails du commentaire...</div>
-        </div>
-    </div>
-</body>
-<!-- <body>
-    <h1>Analyse de Sentiment</h1>
-    <input type="text" id="text-input" placeholder="Entrez votre texte ici" required>
-    <button onclick="predict()">Prédire</button>
 
     <div id="result" class="result-section">
-        <h2>Résultat de la Prédiction</h2>
-        <p id="predicted-class"></p>
-        <p id="error-message" class="error-message" style="display: none;"></p>
-    </div>
-    <div class="search-bar">
-        <input type="text" id="search-term" placeholder="Rechercher un terme...">
-        <button onclick="searchComments()">Rechercher</button>
+        <input type="text" id="text-input" placeholder="Entrez un texte à analyser">
+        <button onclick="predict()">Prédire</button>
+        <div id="predicted-class"></div>
+        <div id="error-message" class="error-message"></div>
     </div>
 
-    <div class="dashboard">
-        <div class="comments-section">
-            <h2>Commentaires</h2>
-            <table id="comments" class="comments-table">
-                <thead>
-                    <tr>
-                        <th>Commentaire</th>
-                        <th>Polarité</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for comment in comments %}
-                        <tr class="comment" onclick="view({{ comment.id }})">
-                            <td>{{ comment.text }}</td>
-                            <td>{{ 'Positif' if comment.class == 1 else 'Négatif' }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="chart-section">
-            <h2>Distribution des Classes</h2>
-            <canvas id="classDistributionChart" width="400" height="200"></canvas>
-        </div>
-    </div>
+    <!-- Modal pour afficher les résultats détaillés -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
-            <h2>Détails du Commentaire</h2>
-            <div id="result_view">
-                <div class='loading'>Chargement en cours...</div>
-            </div>
+            <div id="result_view"></div>
         </div>
     </div>
 
+    <script>
+        async function loadComments() {
+            const response = await fetch('/comments');
+            const comments = await response.json();
+            const commentsTableBody = document.getElementById("comments").querySelector("tbody");
+            commentsTableBody.innerHTML = ''; // Vider la table avant d'ajouter
+            comments.forEach(comment => {
+                const commentRow = document.createElement("tr");
+                commentRow.classList.add("comment");
+                commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
 
+                const textCell = document.createElement("td");
+                textCell.innerText = comment.text;
 
-</body> -->
+                const polarityCell = document.createElement("td");
+                polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
+
+                commentRow.appendChild(textCell);
+                commentRow.appendChild(polarityCell);
+                commentsTableBody.appendChild(commentRow);
+            });
+        }
+
+        async function loadClassDistribution() {
+            const response = await fetch('/class_distribution');
+            const distribution = await response.json();
+
+            const labels = Object.keys(distribution);
+            const counts = Object.values(distribution);
+
+            // Définir les couleurs selon la classe
+            const backgroundColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)');
+            const borderColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)');
+
+            const ctx = document.getElementById('classDistributionChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Nombre de Commentaires par Classe',
+                        data: counts,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    onClick: (e) => {
+                        const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        if (activePoints.length > 0) {
+                            const index = activePoints[0].index;
+                            const selectedClass = labels[index];
+                            filterCommentsByClass(selectedClass);
+                        }
+                    }
+                }
+            });
+        }
+
+        async function filterCommentsByClass(selectedClass) {
+            const response = await fetch('/comments');
+            const comments = await response.json();
+            const filteredComments = comments.filter(comment => comment.class.toString() === selectedClass);
+
+            const commentsTable = document.getElementById("comments").querySelector("tbody");
+            commentsTable.innerHTML = ''; // Vider le tableau actuel
+
+            filteredComments.forEach(comment => {
+                const row = document.createElement("tr");
+
+                const commentCell = document.createElement("td");
+                commentCell.textContent = comment.text;
+                row.appendChild(commentCell);
+
+                const polarityCell = document.createElement("td");
+                polarityCell.textContent = comment.class === 1 ? 'Positif' : 'Négatif';
+                row.appendChild(polarityCell);
+
+                commentsTable.appendChild(row);
+            });
+        }
+
+        async function predict() {
+            const textInput = document.getElementById("text-input");
+            const text = textInput.value.trim();
+            const errorMessage = document.getElementById("error-message");
+
+            errorMessage.style.display = 'none';
+
+            if (text === '') {
+                errorMessage.innerText = "Veuillez entrer un texte.";
+                errorMessage.style.display = 'block';
+                return;
+            } else if (text.length < 5) {
+                errorMessage.innerText = "Le texte doit contenir au moins 5 caractères.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            if (!response.ok) {
+                errorMessage.innerText = "Erreur lors de la prédiction. Veuillez réessayer.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            const result = await response.json();
+            document.getElementById("predicted-class").innerText = "Classe prédite: " + (result.predicted_class == 1 ? 'Positif' : 'Négatif');
+
+            await loadComments();
+            await loadClassDistribution();
+        }
+
+        async function searchComments() {
+            const term = document.getElementById("search-term").value.toLowerCase();
+            const response = await fetch('/comments');
+            const comments = await response.json();
+
+            const filteredComments = comments.filter(comment => comment.text.toLowerCase().includes(term));
+
+            const commentsTableBody = document.getElementById("comments").querySelector("tbody");
+            commentsTableBody.innerHTML = ''; // Vider la table avant d'ajouter
+
+            filteredComments.forEach(comment => {
+                const commentRow = document.createElement("tr");
+                const textCell = document.createElement("td");
+                textCell.innerText = comment.text;
+                const polarityCell = document.createElement("td");
+                polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
+
+                commentRow.appendChild(textCell);
+                commentRow.appendChild(polarityCell);
+                commentsTableBody.appendChild(commentRow);
+            });
+        }
+
+        async function view(commentId) {
+            const response = await fetch('/comment/' + commentId);
+            const comment = await response.json();
+            document.getElementById("result_view").innerHTML = `<strong>Commentaire:</strong> ${comment.text}<br><strong>Polarité:</strong> ${comment.class == 1 ? 'Positif' : 'Négatif'}`;
+            document.getElementById("modal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        // Chargement initial des commentaires et de la distribution des classes
+        loadComments();
+        loadClassDistribution();
+    </script>
+</body>
 </html>
