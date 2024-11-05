@@ -13,6 +13,7 @@ import spacy
 from spacy import displacy
 from spacy.tokens import Span
 
+nlp = spacy.load('en_core_web_sm')
 
 import atexit
 # Configuration
@@ -140,13 +141,17 @@ def home():
 @app.route('/predict/<int:comment_id>', methods=['GET'])
 def predict(comment_id):
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Erreur lors de la connexion à la base de données."}), 500
+    
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT text FROM comments WHERE id = %s", (comment_id,))
-    comment = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("SELECT text FROM comments WHERE id = %s", (comment_id,))
+        comment = cursor.fetchone()
 
-    if comment:
+        if not comment:
+            return jsonify({"error": "Commentaire introuvable."}), 404
+        
         text = comment['text']
         doc = nlp(text)
 
@@ -190,24 +195,39 @@ def predict(comment_id):
 
         return jsonify({"html": result_html})
 
-    return jsonify({"error": "Comment not found"}), 404
+    except Error as e:
+        print(f"Erreur lors de la récupération des résultats: {e}")
+        return jsonify({"error": "Erreur lors de la récupération des résultats."}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 # Route pour obtenir les commentaires
+
 @app.route('/comments', methods=['GET'])
 def get_comments():
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Erreur lors de la connexion à la base de données."}), 500
+
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, text, class, date FROM comments")
-    comments = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("SELECT id, text, class, date FROM comments")
+        comments = cursor.fetchall()
 
-    # Transforme les résultats en une liste de dictionnaires
-    comments_list = [
-        {"id": row['id'], "text": row['text'], "class": row['class'], "date": row['date']} for row in comments
-    ]
+        # Transforme les résultats en une liste de dictionnaires
+        comments_list = [
+            {"id": row['id'], "text": row['text'], "class": row['class'], "date": row['date']} for row in comments
+        ]
 
-    return jsonify(comments_list)
+        return jsonify(comments_list)
+    except Error as e:
+        print(f"Erreur lors de la récupération des commentaires: {e}")
+        return jsonify({"error": "Erreur lors de la récupération des commentaires."}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
