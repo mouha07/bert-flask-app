@@ -96,35 +96,61 @@ def home():
     return render_template('index.html')
 
 # Route de prédiction
-@app.route('/predict', methods=['POST'])
-def predict():
-    data = request.json
-    if 'text' not in data:
-        return jsonify({'error': 'No text provided'}), 400
+@app.route('/predict/<int:comment_id>', methods=['GET'])
+def predict(comment_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT text FROM comments WHERE id = %s", (comment_id,))
+    comment = cursor.fetchone()
+    cursor.close()
+    conn.close()
 
-    text = data['text']
-    
-    # Tokenize and encode text
-    inputs = tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=20)
-    
-    # Get model predictions
-    with torch.no_grad():
-        outputs = model(inputs['input_ids'], mask=inputs['attention_mask'])
-    
-    # Convert logits to probabilities
-    probabilities = torch.exp(outputs)
-    predicted_class = torch.argmax(probabilities, dim=1).item()
-    
-    # Enregistrer le commentaire et la classe dans la base de données
-    insert_query = "INSERT INTO comments (text, class) VALUES (%s, %s)"
-    cursor.execute(insert_query, (text, predicted_class))
-    connection.commit()  # Enregistrez les modifications
-    
-    return jsonify({
-        'text': text,
-        'predicted_class': predicted_class,
-        'probabilities': probabilities.tolist()
-    })
+    if comment:
+        text = comment['text']
+        doc = nlp(text)
+
+        positive_terms = []
+        negative_terms = []
+        interesting_relations = []
+
+        # Analyse des sentiments et relations
+        for token in doc:
+            score = analyzer.polarity_scores(token.text)["compound"]
+            token._.sentiment = "positive" if score > 0 else "negative" if score < 0 else "neutral"
+            if score > 0:
+                positive_terms.append(token.text)
+            elif score < 0:
+                negative_terms.append(token.text)
+
+        # Visualisation des entités
+        positive_spans = [Span(doc, token.i, token.i+1, label="POSITIVE") for token in doc if token._.sentiment == "positive"]
+        negative_spans = [Span(doc, token.i, token.i+1, label="NEGATIVE") for token in doc if token._.sentiment == "negative"]
+        doc.set_ents(positive_spans + negative_spans, default="unmodified")
+
+        # Options de couleur pour les termes
+        colors = {"POSITIVE": "linear-gradient(90deg, #a3e635, #3cb371)", 
+                  "NEGATIVE": "linear-gradient(90deg, #ff6347, #dc143c)"}
+        options = {"ents": ["POSITIVE", "NEGATIVE"], "colors": colors}
+        
+        # Ajouter les relations syntaxiques intéressantes
+        for token in doc:
+            if token.text in positive_terms or token.text in negative_terms:
+                for child in token.children:
+                    if child.dep_ in interesting_deps:
+                        relation_type = interesting_deps[child.dep_]
+                        interesting_relations.append(f"Relation : '{token.text}' --> '{child.text}', Type : {relation_type}")
+
+        # Générer le rendu HTML pour la visualisation
+        html_visualization = displacy.render(doc, style="ent", options=options, jupyter=False)
+        
+        # Rassembler les résultats
+        result_html = html_visualization + "<br><strong>Relations Syntaxiques Intéressantes :</strong><br>"
+        result_html += "<br>".join(interesting_relations)
+
+        return jsonify({"html": result_html})
+
+    return jsonify({"error": "Comment not found"}), 404
+
 
 
 @app.route('/comments', methods=['GET'])
