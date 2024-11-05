@@ -4,3 +4,5 @@ transformers
 boto3
 requests
 mysql-connector-python
+spacy 
+vaderSentiment
