@@ -149,6 +149,7 @@
         .comments-table th, .comments-table td {
             padding: 8px; /* Espacement autour du texte */
             text-align: left; /* Aligner le texte à gauche */
+            border: 1px solid #ddd;
         }
         
         .comments-table th:first-child, .comments-table td:first-child {
@@ -161,6 +162,17 @@
         
         .comments-table th:last-child, .comments-table td:last-child {
             width: 25%; /* Colonne Polarité */
+        }
+        .comments-table thead {
+            background-color: #f4f4f4;
+            position: sticky;
+            top: 0;  /* Fixer l'entête en haut */
+            z-index: 1;  /* Assurer que l'entête reste au-dessus du corps */
+        }
+        .comments-table tbody {
+            display: block;
+            max-height: 400px;  /* Limite la hauteur du tbody, ajuste à ta convenance */
+            overflow-y: auto;   /* Permet le défilement vertical */
         }
         
                 /* Partie droite - Graphique */
@@ -441,31 +453,87 @@ async function loadComments() {
     //     });
     // }
 
-    async function filterCommentsByClass(selectedClass) {
+    // async function filterCommentsByClass(selectedClass) {
+    //     // Charger tous les commentaires
+    //     const response = await fetch('/comments');
+    //     const comments = await response.json();
+    
+    //     const filteredComments = comments.filter(comment => comment.class.toString() === selectedClass);
+    
+    //     // Mise à jour du tableau des commentaires
+    //     const commentsTable = document.getElementById("comments").querySelector("tbody");
+    //     commentsTable.innerHTML = '';  // Vider le tableau actuel
+    
+    //     filteredComments.forEach(comment => {
+    //         const row = document.createElement("tr");
+            
+    //         const commentCell = document.createElement("td");
+    //         commentCell.textContent = comment.text;
+    //         row.appendChild(commentCell);
+    
+    //         const polarityCell = document.createElement("td");
+    //         polarityCell.textContent = comment.class === 1 ? 'Positif' : 'Négatif';
+    //         row.appendChild(polarityCell);
+    
+    //         commentsTable.appendChild(row);
+    //     });
+    // }
+async function filterCommentsByClass(selectedClass) {
+    try {
         // Charger tous les commentaires
         const response = await fetch('/comments');
+        if (!response.ok) {
+            throw new Error('Erreur lors de la récupération des commentaires.');
+        }
         const comments = await response.json();
-    
-        const filteredComments = comments.filter(comment => comment.class.toString() === selectedClass);
-    
+        
+        // Convertir 'Positif' ou 'Négatif' en classe numérique (1 ou 0)
+        const classMapping = {
+            'Positif': 1,
+            'Négatif': 0
+        };
+        const selectedClassValue = classMapping[selectedClass];
+        
+        // Filtrer les commentaires en fonction de la classe sélectionnée
+        const filteredComments = comments.filter(comment => comment.class === selectedClassValue);
+
         // Mise à jour du tableau des commentaires
         const commentsTable = document.getElementById("comments").querySelector("tbody");
         commentsTable.innerHTML = '';  // Vider le tableau actuel
-    
+
         filteredComments.forEach(comment => {
             const row = document.createElement("tr");
-            
+
+            // Ajouter la cellule de date
+            const dateCell = document.createElement("td");
+            const date = new Date(comment.date); // Assurez-vous que comment.date est un format compatible
+            const formattedDate = date.toLocaleString("fr-FR", {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            dateCell.textContent = formattedDate;
+            row.appendChild(dateCell);
+
+            // Ajouter la cellule de texte du commentaire
             const commentCell = document.createElement("td");
             commentCell.textContent = comment.text;
             row.appendChild(commentCell);
-    
+
+            // Ajouter la cellule de polarité
             const polarityCell = document.createElement("td");
             polarityCell.textContent = comment.class === 1 ? 'Positif' : 'Négatif';
             row.appendChild(polarityCell);
-    
+
+            // Ajouter la ligne du commentaire dans le tableau
             commentsTable.appendChild(row);
         });
+    } catch (error) {
+        console.error("Erreur lors du filtrage des commentaires :", error);
+        alert("Une erreur est survenue lors du filtrage des commentaires.");
     }
+}
 
 
     
@@ -562,6 +630,9 @@ async function predict() {
     predictedClass.innerText = "Classe prédite: " + (isPositive ? 'Positif 😊' : 'Négatif 😞');
     predictedClass.classList.add(isPositive ? 'positive' : 'negative');
 
+    // Vider le champ de texte après la prédiction
+    textInput.value = '';
+    
     // Rechargez les commentaires et la distribution après une nouvelle prédiction
     await loadComments();
     await loadClassDistribution(); 
@@ -601,19 +672,47 @@ function updateCommentsTable(comments) {
     commentsTableBody.innerHTML = "";  // Vider le tableau actuel
 
     comments.forEach(comment => {
-        const row = document.createElement("tr");
-        row.classList.add("comment");
-        row.onclick = () => view(comment.id);
+        const commentRow = document.createElement("tr");
+        commentRow.classList.add("comment");
+        commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
+
+        // Création de la cellule de date
+        const dateCell = document.createElement("td");
         
+        // Conversion de la chaîne de date en un objet Date
+        const dateString = comment.date; // Date au format "YYYY-MM-DD HH:MM:SS"
+        const date = new Date(dateString); // Crée un objet Date à partir de la chaîne
+        
+        // Vérifier si la date est valide
+        if (isNaN(date.getTime())) {
+            console.error("Date invalide:", dateString);
+            dateCell.innerText = "Date invalide"; // Si la date est invalide, affiche "Date invalide"
+        } else {
+            // Formater la date en jj/mm hh:mm
+            const formattedDate = date.toLocaleString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            
+            dateCell.innerText = formattedDate;  // Affecter la date formatée à la cellule
+        }
+
+        // Création des autres cellules
         const textCell = document.createElement("td");
         textCell.innerText = comment.text;
-        row.appendChild(textCell);
-
+        
         const polarityCell = document.createElement("td");
-        polarityCell.innerText = comment.class === 1 ? "Positif" : "Négatif";
-        row.appendChild(polarityCell);
+        polarityCell.innerText = comment.class === 1 ? 'Positif' : 'Négatif';
 
-        commentsTableBody.appendChild(row);
+        // Ajouter les cellules à la ligne du commentaire
+        commentRow.appendChild(dateCell);       // Ajouter la cellule de date
+        commentRow.appendChild(textCell);        // Ajouter la cellule de texte
+        commentRow.appendChild(polarityCell);    // Ajouter la cellule de polarité
+        
+        // Ajouter la ligne du commentaire au corps de la table
+        commentsTableBody.appendChild(commentRow);
     });
 }
 // Variable globale pour stocker le graphique
@@ -760,12 +859,6 @@ function updateChart(distribution) {
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Vos commentaires ici -->
-<!--                     <tr class="comment-item">
-                        <td>01/01/2023</td>
-                        <td>Exemple de commentaire</td>
-                        <td>Positive</td>
-                    </tr> -->
                     <!-- Autres commentaires -->
                         </tbody>
                     </table>
