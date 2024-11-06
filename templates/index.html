@@ -141,8 +141,29 @@
             background-color: #f4f6f9;
             font-weight: bold;
         }
-
-        /* Partie droite - Graphique */
+        .comments-table {
+            width: 100%; /* Le tableau prend toute la largeur de son conteneur */
+            table-layout: fixed; /* Cela permet de contrôler la largeur des colonnes */
+        }
+        
+        .comments-table th, .comments-table td {
+            padding: 8px; /* Espacement autour du texte */
+            text-align: left; /* Aligner le texte à gauche */
+        }
+        
+        .comments-table th:first-child, .comments-table td:first-child {
+            width: 15%; /* Colonne Date */
+        }
+        
+        .comments-table th:nth-child(2), .comments-table td:nth-child(2) {
+            width: 60%; /* Colonne Commentaire (la plus large) */
+        }
+        
+        .comments-table th:last-child, .comments-table td:last-child {
+            width: 25%; /* Colonne Polarité */
+        }
+        
+                /* Partie droite - Graphique */
         .chart-section {
             flex: 1;
             display: flex;
