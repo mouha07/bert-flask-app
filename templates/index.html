@@ -297,9 +297,24 @@
             commentRow.classList.add("comment");
             commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
 
-            const dateCell = document.createElement("td");  // Colonne de date ajoutée
-            dateCell.innerText = comment.date; // Remplacez par le bon attribut pour la date
+            // Création de la cellule de date
+            const dateCell = document.createElement("td");
             
+            // Conversion de la chaîne de date en un objet Date
+            const dateString = comment.date; // Date au format "YYYY-MM-DD HH:MM:SS"
+            const date = new Date(dateString);
+            
+            // Formater la date en jj/mm hh:mm
+            const formattedDate = date.toLocaleString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            
+            // Affecter la date formatée à la cellule
+            dateCell.innerText = formattedDate;
+
             const textCell = document.createElement("td");
             textCell.innerText = comment.text;
             
