@@ -286,47 +286,53 @@
 
 
         // ************
-
-       async function loadComments() {
-        const response = await fetch('/comments');
-        const comments = await response.json();
-        const commentsTableBody = document.getElementById("comments").querySelector("tbody");
-        commentsTableBody.innerHTML = ''; // Vider la table avant d'ajouter
-        comments.forEach(comment => {
-            const commentRow = document.createElement("tr");
-            commentRow.classList.add("comment");
-            commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
-
-            // Création de la cellule de date
-            const dateCell = document.createElement("td");
-            
-            // Conversion de la chaîne de date en un objet Date
-            const dateString = comment.date; // Date au format "YYYY-MM-DD HH:MM:SS"
-            const date = new Date(dateString);
-            
-            // Formater la date en jj/mm hh:mm
-            const formattedDate = date.toLocaleString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-            
-            // Affecter la date formatée à la cellule
-            dateCell.innerText = formattedDate;
-
-            const textCell = document.createElement("td");
-            textCell.innerText = comment.text;
-            
-            const polarityCell = document.createElement("td");
-            polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
+async function loadComments() {
+    const response = await fetch('/comments');
+    const comments = await response.json();
+    const commentsTableBody = document.getElementById("comments").querySelector("tbody");
     
-            row.appendChild(dateCell); // Ajout de la cellule de date
-            commentRow.appendChild(textCell);
-            commentRow.appendChild(polarityCell);
-            commentsTableBody.appendChild(commentRow);
+    commentsTableBody.innerHTML = ''; // Vider la table avant d'ajouter les nouveaux commentaires
+    
+    comments.forEach(comment => {
+        const commentRow = document.createElement("tr");
+        commentRow.classList.add("comment");
+        commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
+
+        // Création de la cellule de date
+        const dateCell = document.createElement("td");
+        
+        // Conversion de la chaîne de date en un objet Date
+        const dateString = comment.date; // Date au format "YYYY-MM-DD HH:MM:SS"
+        const date = new Date(dateString);
+        
+        // Formater la date en jj/mm hh:mm
+        const formattedDate = date.toLocaleString("fr-FR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
         });
-    }
+        
+        // Affecter la date formatée à la cellule
+        dateCell.innerText = formattedDate;
+
+        // Création des autres cellules
+        const textCell = document.createElement("td");
+        textCell.innerText = comment.text;
+        
+        const polarityCell = document.createElement("td");
+        polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
+
+        // Ajouter les cellules à la ligne du commentaire
+        commentRow.appendChild(dateCell);       // Ajouter la cellule de date
+        commentRow.appendChild(textCell);        // Ajouter la cellule de texte
+        commentRow.appendChild(polarityCell);    // Ajouter la cellule de polarité
+        
+        // Ajouter la ligne du commentaire au corps de la table
+        commentsTableBody.appendChild(commentRow);
+    });
+}
+      
 
     async function loadClassDistribution() {
     const response = await fetch('/class_distribution');
