@@ -8,47 +8,158 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body {
+         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;           /* Hauteur de la page fixée à la hauteur de l'écran */
+            overflow: hidden;            /* Évite le défilement global */
         }
         .dashboard {
+            width: 90%;
+            height: 90vh;            /* Prend presque tout l'espace vertical */
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+         /* Entête */
+        .header {
+            padding: 20px;
+            background-color: #005a9e;
+            color: #ffffff;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Corps principal avec flex pour organiser les sections */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .header .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 200px;
+        }
+
+        .header button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #1e88e5;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 200px;
+            transition: opacity 0.3s ease, width 0.3s ease;
+        }
+
+        .input-group button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #1e88e5;
+            color: #fff;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Masquer avec une transition */
+        .hidden {
+            opacity: 0;
+            width: 0;
+            padding: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        
+        /* Corps du tableau de bord */
+        .body {
+            display: flex;
             padding: 20px;
+            gap: 20px;
         }
-        
+
+        /* Partie gauche - Liste des commentaires */
         .comments-section {
-            flex: 1; /* Prend tout l'espace disponible */
-            margin-right: 20px; /* Marge à droite pour l'espacement */
+            flex: 1;
+            margin-right: 20px;
+            /* Marge à droite pour l'espacement */
         }
-        
-        .chart-section {
-            flex: 1; /* Prend tout l'espace disponible */
+
+        .comments-section h2 {
+            margin: 0 0 10px;
         }
-        
+
         .comments-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        
-        .comments-table th, .comments-table td {
+
+        .comments-table th,
+        .comments-table td {
+            padding: 10px;
             border: 1px solid #ddd;
-            padding: 8px;
             text-align: left;
+            /* background-color: #f2f2f2; */
         }
-        
+
         .comments-table th {
-            background-color: #f2f2f2;
+            background-color: #f4f6f9;
+            font-weight: bold;
         }
-        h1 {
-            color: #333;
+
+        /* Partie droite - Graphique */
+        .chart-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+
+        .chart-section h2 {
+            margin: 0 0 20px;
+        }
+
+
+
         #comments {
             margin-bottom: 20px;
         }
+
         .comment {
             cursor: pointer;
             border: 1px solid #ccc;
@@ -57,16 +168,19 @@
             border-radius: 5px;
             transition: background-color 0.3s;
         }
+
         .comment:hover {
             background-color: #e0f7fa;
         }
-        #result {
+
+/*         #result {
             margin-top: 20px;
             border: 1px solid #ccc;
             padding: 10px;
             border-radius: 5px;
             background-color: #fff;
-        }
+        } */
+
         #result_view {
             margin-top: 20px;
             border: 1px solid #ccc;
@@ -74,24 +188,25 @@
             border-radius: 5px;
             background-color: #fff;
         }
+
         .loading {
             font-style: italic;
             color: #555;
         }
-        .result-section {
+
+/*         .result-section {
             margin-top: 20px;
         }
-        
-        #predicted-class {
+ */
+/*         #predicted-class {
             font-weight: bold;
             font-size: 1.2em;
             margin-top: 10px;
-        }
-        
-        .error-message {
-            color: red;
-        }
+        } */
 
+/*         .error-message {
+            color: red;
+        } */
         .modal {
             display: none; /* Cacher la modale par défaut */
             position: fixed; /* Rester en place */
@@ -181,6 +296,9 @@
             const commentRow = document.createElement("tr");
             commentRow.classList.add("comment");
             commentRow.onclick = () => view(comment.id); // Lien vers la vue du commentaire
+
+            const dateCell = document.createElement("td");  // Colonne de date ajoutée
+            dateCell.innerText = comment.date; // Remplacez par le bon attribut pour la date
             
             const textCell = document.createElement("td");
             textCell.innerText = comment.text;
@@ -188,53 +306,98 @@
             const polarityCell = document.createElement("td");
             polarityCell.innerText = comment.class == 1 ? 'Positif' : 'Négatif';
     
+            row.appendChild(dateCell); // Ajout de la cellule de date
             commentRow.appendChild(textCell);
             commentRow.appendChild(polarityCell);
             commentsTableBody.appendChild(commentRow);
         });
     }
-    
+
     async function loadClassDistribution() {
-        const response = await fetch('/class_distribution');
-        const distribution = await response.json();
-        
-        const labels = Object.keys(distribution);  // Ex: ['Classe 0', 'Classe 1']
-        const counts = Object.values(distribution);  // Nombre de commentaires par classe
-        
-        // Définir les couleurs selon la classe
-        const backgroundColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)');
-        const borderColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)');
-        
-        const ctx = document.getElementById('classDistributionChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Nombre de Commentaires par Classe',
-                    data: counts,
-                    backgroundColor: backgroundColors,
-                    borderColor: borderColors,
-                    borderWidth: 1
-                }]
+    const response = await fetch('/class_distribution');
+    const distribution = await response.json();
+    
+    // Remplacer les labels '0' par 'Négatif' et '1' par 'Positif'
+    const labels = Object.keys(distribution).map(label => label === '0' ? 'Négatif' : 'Positif');
+    const counts = Object.values(distribution);  // Nombre de commentaires par classe
+    
+    // Définir les couleurs selon la classe
+    const backgroundColors = labels.map(label => label === 'Négatif' ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)');
+    const borderColors = labels.map(label => label === 'Négatif' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)');
+    
+    const ctx = document.getElementById('classDistributionChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Nombre de Commentaires par Classe',
+                data: counts,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                onClick: (e) => {
-                    const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    if (activePoints.length > 0) {
-                        const index = activePoints[0].index;
-                        const selectedClass = labels[index];
-                        filterCommentsByClass(selectedClass);
-                    }
+            onClick: (e) => {
+                const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                if (activePoints.length > 0) {
+                    const index = activePoints[0].index;
+                    const selectedClass = labels[index];
+                    filterCommentsByClass(selectedClass);
                 }
             }
-        });
-    }
+        }
+    });
+}
+
+    
+    // async function loadClassDistribution() {
+    //     const response = await fetch('/class_distribution');
+    //     const distribution = await response.json();
+        
+    //     const labels = Object.keys(distribution);  // Ex: ['Classe 0', 'Classe 1']
+    //     const counts = Object.values(distribution);  // Nombre de commentaires par classe
+        
+    //     // Définir les couleurs selon la classe
+    //     const backgroundColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)');
+    //     const borderColors = labels.map(label => label === '0' ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)');
+        
+    //     const ctx = document.getElementById('classDistributionChart').getContext('2d');
+    //     const chart = new Chart(ctx, {
+    //         type: 'bar',
+    //         data: {
+    //             labels: labels,
+    //             datasets: [{
+    //                 label: 'Nombre de Commentaires par Classe',
+    //                 data: counts,
+    //                 backgroundColor: backgroundColors,
+    //                 borderColor: borderColors,
+    //                 borderWidth: 1
+    //             }]
+    //         },
+    //         options: {
+    //             scales: {
+    //                 y: {
+    //                     beginAtZero: true
+    //                 }
+    //             },
+    //             onClick: (e) => {
+    //                 const activePoints = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+    //                 if (activePoints.length > 0) {
+    //                     const index = activePoints[0].index;
+    //                     const selectedClass = labels[index];
+    //                     filterCommentsByClass(selectedClass);
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
 
     async function filterCommentsByClass(selectedClass) {
         // Charger tous les commentaires
@@ -271,14 +434,59 @@
 
 
 // Appelez cette fonction après avoir chargé les commentaires
+// async function predict() {
+//     const textInput = document.getElementById("text-input");
+//     const text = textInput.value.trim();
+//     const errorMessage = document.getElementById("error-message");
+    
+//     // Réinitialiser le message d'erreur
+//     errorMessage.style.display = 'none';
+    
+//     // Vérifications avant d'envoyer la requête
+//     if (text === '') {
+//         errorMessage.innerText = "Veuillez entrer un texte.";
+//         errorMessage.style.display = 'block';
+//         return;
+//     } else if (text.length < 5) {
+//         errorMessage.innerText = "Le texte doit contenir au moins 5 caractères.";
+//         errorMessage.style.display = 'block';
+//         return;
+//     }
+
+//     // Envoi de la requête de prédiction
+//     const response = await fetch('/predict', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify({ text: text })
+//     });
+
+//     if (!response.ok) {
+//         errorMessage.innerText = "Erreur lors de la prédiction. Veuillez réessayer.";
+//         errorMessage.style.display = 'block';
+//         return;
+//     }
+
+//     const result = await response.json();
+//     document.getElementById("predicted-class").innerText = "Classe prédite: " + (result.predicted_class == 1 ? 'Positif' : 'Négatif');
+
+//     // Rechargez les commentaires et la distribution après une nouvelle prédiction
+//     await loadComments();
+//     await loadClassDistribution(); // Ajoutez ceci pour charger la distribution des classes
+// }
+
 async function predict() {
     const textInput = document.getElementById("text-input");
     const text = textInput.value.trim();
     const errorMessage = document.getElementById("error-message");
-    
-    // Réinitialiser le message d'erreur
+    const predictedClass = document.getElementById("predicted-class");
+
+    // Réinitialiser les messages d'erreur et le style
     errorMessage.style.display = 'none';
-    
+    predictedClass.classList.remove('positive', 'negative');
+    predictedClass.innerText = '';
+
     // Vérifications avant d'envoyer la requête
     if (text === '') {
         errorMessage.innerText = "Veuillez entrer un texte.";
@@ -306,12 +514,17 @@ async function predict() {
     }
 
     const result = await response.json();
-    document.getElementById("predicted-class").innerText = "Classe prédite: " + (result.predicted_class == 1 ? 'Positif' : 'Négatif');
+    const isPositive = result.predicted_class == 1;
+    
+    // Afficher le résultat avec la classe CSS appropriée
+    predictedClass.innerText = "Classe prédite: " + (isPositive ? 'Positif 😊' : 'Négatif 😞');
+    predictedClass.classList.add(isPositive ? 'positive' : 'negative');
 
     // Rechargez les commentaires et la distribution après une nouvelle prédiction
     await loadComments();
-    await loadClassDistribution(); // Ajoutez ceci pour charger la distribution des classes
+    await loadClassDistribution(); 
 }
+
 
 async function searchComments() {
     const term = document.getElementById("search-term").value.trim();
@@ -361,6 +574,8 @@ function updateCommentsTable(comments) {
         commentsTableBody.appendChild(row);
     });
 }
+// Variable globale pour stocker le graphique
+let chart;
 
 function updateChart(distribution) {
     const ctx = document.getElementById('classDistributionChart').getContext('2d');
@@ -376,12 +591,12 @@ function updateChart(distribution) {
     };
 
     // Vérifier si un graphique existe déjà et le détruire
-    if (window.chart) {
-        window.chart.destroy();
+    if (chart) {
+        chart.destroy();
     }
 
     // Créer un nouveau graphique
-    window.chart = new Chart(ctx, {
+    chart = new Chart(ctx, {
         type: 'bar',
         data: chartData,
         options: {
@@ -393,6 +608,38 @@ function updateChart(distribution) {
         }
     });
 }
+
+// function updateChart(distribution) {
+//     const ctx = document.getElementById('classDistributionChart').getContext('2d');
+//     const chartData = {
+//         labels: ["Positif", "Négatif"],
+//         datasets: [{
+//             label: 'Nombre de Commentaires par Classe',
+//             data: [distribution.Positif, distribution.Négatif],
+//             backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+//             borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+//             borderWidth: 1
+//         }]
+//     };
+
+//     // Vérifier si un graphique existe déjà et le détruire
+//     if (window.chart) {
+//         window.chart.destroy();
+//     }
+
+//     // Créer un nouveau graphique
+//     window.chart = new Chart(ctx, {
+//         type: 'bar',
+//         data: chartData,
+//         options: {
+//             scales: {
+//                 y: {
+//                     beginAtZero: true
+//                 }
+//             }
+//         }
+//     });
+// }
 
 
 // // Fonction pour mettre à jour le graphique
@@ -439,9 +686,64 @@ function updateChart(distribution) {
 </head>
     <body>
     <div class="dashboard">
-        <div class="comments-section">
-            <h1>Commentaires</h1>
-            <div id="search-input">
+        <!-- Entête -->
+            <div class="header">
+                <h1>Tableau de Bord</h1>
+                <div class="input-group">
+                    <input type="text" id="search-term" placeholder="Rechercher un commentaire">
+                    <button onclick="searchComments()">Rechercher</button>
+                    <input type="text" id="text-input" placeholder="Entrer un commentaire">
+                    <button onclick="predict()">Prédire</button>
+                    <div id="error-message" class="error-message" style="display:none;"></div>
+                </div>
+                <div id="result" class="result-section">
+                    <h2>Résultat de la Prédiction</h2>
+                    <p id="predicted-class" class="prediction-result"></p>
+                    <p id="error-message" class="error-message" style="display: none;"></p>
+                </div>
+                
+            </div>
+
+        <!-- Corps -->
+            <div class="body main-content">
+                <!-- Liste des commentaires (gauche) -->
+                <div class="comments-section">
+                    <h2>Liste des Commentaires</h2>
+                    <table id="comments" class="comments-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Texte</th>
+                                <th>Polarité</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Vos commentaires ici -->
+<!--                     <tr class="comment-item">
+                        <td>01/01/2023</td>
+                        <td>Exemple de commentaire</td>
+                        <td>Positive</td>
+                    </tr> -->
+                    <!-- Autres commentaires -->
+                        </tbody>
+                    </table>
+                </div>
+    
+                <!-- Graphique (droite) -->
+                <div class="chart-section">
+                    <h2>Distribution des Classes</h2>
+                    <canvas id="classDistributionChart"></canvas>
+                </div>
+            </div>
+
+
+        
+
+<!--         ************************** -->
+        
+<!--         <div class="comments-section"> -->
+<!--             <h1>Commentaires</h1> -->
+<!--             <div id="search-input">
                 <input type="text" id="search-term" placeholder="Rechercher un commentaire">
                 <button onclick="searchComments()">Rechercher</button>
             </div>
@@ -449,29 +751,58 @@ function updateChart(distribution) {
                 <input type="text" id="text-input" placeholder="Entrez un commentaire pour prédiction">
                 <button onclick="predict()">Prédire</button>
                 <div id="error-message" class="error-message" style="display:none;"></div>
-            </div>
-            <table id="comments" class="comments-table">
+            </div> -->
+<!--             <table id="comments" class="comments-table">
                 <thead>
                     <tr>
                         <th>Texte</th>
                         <th>Polarité</th>
-                        <th>Date</th> <!-- Nouvelle colonne pour la date -->
+                        <th>Date</th> 
                     </tr>
                 </thead>
                 <tbody></tbody>
-            </table>
-        </div>
-        <div class="chart-section">
+            </table> -->
+<!--         </div> -->
+<!--         <div class="chart-section">
             <h2>Distribution des Classes</h2>
             <canvas id="classDistributionChart"></canvas>
         </div>
-    </div>
+    </div> -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
             <div id="result_view">Détails du commentaire...</div>
         </div>
     </div>
+
+    <script>
+        function toggleVisibility(inputId) {
+        const searchInput = document.getElementById('search-term');
+        const searchButton = searchInput.nextElementSibling;
+        const predictInput = document.getElementById('text-input');
+        const predictButton = predictInput.nextElementSibling;
+
+        // Masque ou affiche l'autre groupe en fonction du champ sélectionné
+        if (inputId === 'search-term') {
+            predictInput.classList.add('hidden');
+            predictButton.classList.add('hidden');
+        } else if (inputId === 'text-input') {
+            searchInput.classList.add('hidden');
+            searchButton.classList.add('hidden');
+        }
+    }
+
+    function resetVisibility() {
+        const inputs = document.querySelectorAll('.input-group input, .input-group button');
+        inputs.forEach(input => input.classList.remove('hidden'));
+    }
+
+    document.getElementById('search-term').addEventListener('focus', () => toggleVisibility('search-term'));
+    document.getElementById('search-term').addEventListener('blur', resetVisibility);
+
+    document.getElementById('text-input').addEventListener('focus', () => toggleVisibility('text-input'));
+    document.getElementById('text-input').addEventListener('blur', resetVisibility);
+    </script>
 </body>
 <!-- <body>
     <h1>Analyse de Sentiment</h1>
