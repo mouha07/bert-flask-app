@@ -124,56 +124,63 @@
         }
 
        .comments-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.comments-table th,
-.comments-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-.comments-table th {
-    background-color: #f4f6f9;
-    font-weight: bold;
-}
-
-.comments-table thead {
-    background-color: #f4f4f4;
-    position: sticky;
-    top: 0;  /* Fixer l'entête en haut */
-    z-index: 1;  /* Assurer que l'entête reste au-dessus du corps */
-}
-
-.comments-table tbody {
-    display: block;
-    max-height: 400px;  /* Limite la hauteur du tbody, ajuste à ta convenance */
-    overflow-y: auto;   /* Permet le défilement vertical */
-    width: 100%;
-}
-
-.comments-table td,
-.comments-table th {
-    width: 33%; /* Valeur par défaut pour toute la table */
-}
-
-.comments-table th:first-child,
-.comments-table td:first-child {
-    width: 15%; /* Colonne Date */
-}
-
-.comments-table th:nth-child(2),
-.comments-table td:nth-child(2) {
-    width: 60%; /* Colonne Commentaire (la plus large) */
-}
-
-.comments-table th:last-child,
-.comments-table td:last-child {
-    width: 25%; /* Colonne Polarité */
-}
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .comments-table th,
+        .comments-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .comments-table th {
+            background-color: #f4f6f9;
+            font-weight: bold;
+        }
+        
+        .comments-table thead {
+            background-color: #f4f4f4;
+            position: sticky;
+            top: 0;  /* Fixer l'entête en haut */
+            z-index: 1;  /* Assurer que l'entête reste au-dessus du corps */
+        }
+        
+        .comments-table tbody {
+            display: block;
+            max-height: 400px;  /* Limite la hauteur du tbody, ajuste à ta convenance */
+            overflow-y: auto;   /* Permet le défilement vertical */
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .comments-table tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed; /* Permet de gérer la largeur des colonnes */
+        }
+        
+        .comments-table td,
+        .comments-table th {
+            width: 33%; /* Valeur par défaut pour toute la table */
+        }
+        
+        .comments-table th:first-child,
+        .comments-table td:first-child {
+            width: 15%; /* Colonne Date */
+        }
+        
+        .comments-table th:nth-child(2),
+        .comments-table td:nth-child(2) {
+            width: 60%; /* Colonne Commentaire (la plus large) */
+        }
+        
+        .comments-table th:last-child,
+        .comments-table td:last-child {
+            width: 25%; /* Colonne Polarité */
+        }
 
         
                 /* Partie droite - Graphique */
